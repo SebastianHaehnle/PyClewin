@@ -5,7 +5,7 @@ Created on Mon Mar 27 11:38:37 2017
 @author: sebastian
 """
 
-from clepywin import *
+from PyClewin import *
 
 import numpy as np
 
@@ -13,10 +13,10 @@ def alignmentCircles(layer):
     rS = 2.5
     rM = 5.
     rL = 20.
-    
+
     directions = [1, 1j, -1, -1j]
     altpos = [210, -210]
-    
+
     layername(layer)
     setmark('tempcenter')
     circle(rM)
@@ -40,7 +40,7 @@ def alignmentCircles(layer):
         crossline()
         gomark
     gomark('tempcenter')
-    
+
     def smallcross():
         setmark('temptempcenter')
         circle(rS)
@@ -54,21 +54,21 @@ def alignmentCircles(layer):
             circle(rS)
             for i in xrange(2):
                 go(10, 0)
-                circle(rS)            
+                circle(rS)
     for ix in altpos:
         for iy in altpos:
             gomark('tempcenter')
             go(ix, iy)
             smallcross()
     gomark('tempcenter')
-            
+
 def alignmentSquares(layer, name = None):
     dS = 5
     dM = 10
     dL = 40
     directions = [1, 1j, -1, -1j]
     altpos = [210, -210]
-    
+
     layername(layer)
     setmark('tempcenter')
     square(dM)
@@ -99,5 +99,4 @@ def alignmentSquares(layer, name = None):
                 go(7.5, 0)
                 wirego(1, 65, dS)
     gomark('tempcenter')
-    
-    
+

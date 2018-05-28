@@ -5,7 +5,7 @@ Created on Tue Jan 10 14:15:43 2017
 @author: sebastian
 """
 
-from clepywin import *
+from PyClewin import *
 
 def transMSHybridM4000(direction, ms, hybrid, **kwargs):
     '''
@@ -16,7 +16,7 @@ def transMSHybridM4000(direction, ms, hybrid, **kwargs):
     lmsonly = 2.
     loverlap = 7.
     woverlap = 2.
-    
+
     rot(direction)
     # Draw continuing GND plane
     setmark('transitionlevel')
@@ -43,7 +43,7 @@ def transMSWideM4000(direction, ms, wide, **kwargs):
     ldiel = 4.
     lmsonly = 3.
     loverlap = 7.
-    
+
     rot(direction)
     setmark('transitionlevel')
     layername(ms.linelayer)
@@ -54,7 +54,7 @@ def transMSWideM4000(direction, ms, wide, **kwargs):
     broaden(1, ldiel + lmsonly, ms.line, wide.line/2.)
     cpwbroadengo(1, ltrans, 0, ms.line, wide.line, wide.gap)
     rotback()
-    
+
 
 def transHybridWideM4000(direction, hybrid, wide, **kwargs):
     ltrans = 21.

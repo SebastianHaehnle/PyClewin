@@ -5,7 +5,7 @@ Created on Tue Mar 21 17:15:47 2017
 @author: sebastian
 """
 
-from clepywin import *
+from PyClewin import *
 
 def juansHoles1990(backsidelayer, frontsidelayer, hwafer, tolerance, gndlayer, tantalumFront = None, tantalumBack = None):
     """
@@ -13,7 +13,7 @@ def juansHoles1990(backsidelayer, frontsidelayer, hwafer, tolerance, gndlayer, t
     """
     sizeHoleFront = 1990.
     sizeHoleBack = sizeHoleFront + 2*KOHetchWidth(hwafer) + tolerance
-    def dohole():    
+    def dohole():
         layername('text')
         square(sizeHoleFront)
         layername(backsidelayer)
@@ -28,9 +28,9 @@ def juansHoles1990(backsidelayer, frontsidelayer, hwafer, tolerance, gndlayer, t
         if tantalumBack:
             layername(tantalumBack)
             square(sizeHoleBack + 20)
-            
-    holePos = [[5500, 5500], [0, -11000], [-11000, 0], [0, 11000]] 
-            
+
+    holePos = [[5500, 5500], [0, -11000], [-11000, 0], [0, 11000]]
+
     gomark('antenna') #chip center
 #    go(5500, 5500) # top right
     go(*holePos[0])
@@ -45,4 +45,3 @@ def juansHoles1990(backsidelayer, frontsidelayer, hwafer, tolerance, gndlayer, t
 #    go(0, 11000) # top left
     dohole()
     return holePos
-    

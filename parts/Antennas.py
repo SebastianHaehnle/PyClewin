@@ -5,7 +5,7 @@ Created on Tue Mar 21 16:02:29 2017
 @author: sebastian
 """
 
-from clepywin import *
+from PyClewin import *
 
 import numpy as np
 import scipy.constants as spc
@@ -13,18 +13,18 @@ import collections
 
 def leakyM4001(direction, cpw):
     """
-    Leaky Antenna: 
-        BW = 300 GHz - 900 GHz 
+    Leaky Antenna:
+        BW = 300 GHz - 900 GHz
         Size: 990 um x 282.5 um
-        Feed = CPW    
+        Feed = CPW
         Designed by Ozan
     """
     wTotal = 990 #2778./3
-    hTotal = 282.5  
+    hTotal = 282.5
     wSlot = 3.
     hSlot = 2.
     lTaper = (wTotal - wSlot)/2.
-    
+
     rot(direction)
     layername(cpw.gndlayer)
     bar(1j, wSlot, hSlot)
@@ -42,7 +42,7 @@ def leakyAdjustable(direction, cpw, wTotal, markname = 'antennaShort'):
 
     hTotal = 282.5 * (wTotal - wSlot)/(990. - wSlot)
     lTaper = (wTotal - wSlot)/2.
-    
+
     rot(direction)
     layername(cpw.gndlayer)
     bar(1j, wSlot, hSlot)
@@ -54,13 +54,13 @@ def leakyAdjustable(direction, cpw, wTotal, markname = 'antennaShort'):
     rot(np.conjugate(direction))
     setmark(markname)
     return hTotal
-    
+
 def leakyAdjustableNarrow(direction, cpw, wTotal, markname = 'antennaShort'):
     hTotal = 10. # Check correct number from original leaky paper
     wSlot = 3.
     hSlot = 2.
     lTaper = (wTotal - wSlot)/2.
-    
+
     rot(direction)
     layername(cpw.gndlayer)
     bar(1j, wSlot, hSlot)
@@ -71,7 +71,7 @@ def leakyAdjustableNarrow(direction, cpw, wTotal, markname = 'antennaShort'):
     go(hSlot/2., wSlot/2.)
     rot(np.conjugate(direction))
     setmark(markname)
-    
+
 def leakyStraight(direction, cpw, w, h, markname = 'antennaShort'):
     rot(direction)
     layername(cpw.gndlayer)
@@ -79,7 +79,7 @@ def leakyStraight(direction, cpw, w, h, markname = 'antennaShort'):
     go(h/2., 0)
     rot(np.conjugate(direction))
     setmark(markname)
-    
+
 if __name__ == '__main__':
     folder = r'C:\Users\sebastian\ownCloud\p27lib\clepywin'
     filename = 'part_leakyM4001.cif'
@@ -97,17 +97,17 @@ if __name__ == '__main__':
     layers['SiNbackside'] = '0fff00cb'
     layers['text'] = '05000000'
     layers['AlignmentHoles'] = '0fff00ff'
-          
+
     # Define the base unit for all lengths in the design
     unit_scale = 1e3    # micron
     gg.scale = unit_scale
     #actual
-    
+
     introScript()
     introLayers()
     for i, k in enumerate(layers):
         addLayer(i, k, layers[k])
-        
+
     symbols = {1 : 'Main'}
     introSymbols()
     defineSymbol(*symbols.items()[0])
@@ -118,8 +118,8 @@ if __name__ == '__main__':
                           mesh = 36)
     go(0, 0)
     print leakyAdjustable(1j, kidHybrid, 700)
-    
-    
+
+
     outroScript(symbols.keys()[-1])
     # write to file
     writeScript(filepath)

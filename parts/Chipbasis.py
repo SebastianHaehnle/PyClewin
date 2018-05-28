@@ -5,21 +5,19 @@ Created on Mon Jan 09 16:56:47 2017
 @author: sebastian
 """
 
-from clepywin import *
-
+from PyClewin import *
+from PyClewin.base import *
 import numpy as np
 import scipy.constants as spc
 
 
-def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
-    #    Chip size
+def Deshima42x14(layers):
     chip_lx = 42e3
     chip_ly = 14e3
-    
-#    antenna origin    
+#    antenna origin
     origin_antenna = (7200,7000)
     #==============================================================================
-    # write chip edge    
+    # write chip edge
     #==============================================================================
     #    write in ?? layer
     layername('text')
@@ -34,7 +32,7 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
         '''
         written for bottom left
         '''
-        
+
         setmark('temp')
         rot(direction)
         go(0,25)
@@ -49,20 +47,84 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
     writecorner(-1)
     go(-chip_lx, 0)
     writecorner(-1j)
-    
-#    define coordinates where readout cpws end
-    gomark('chip00') 
+#
+    # define coordinates where readout cpws end
+    gomark('chip00')
     go(41e3, 12.1e3)
     setmark('bondpadtop')
-    gomark('chip00')    
+    gomark('chip00')
     go(41e3, 1.9e3)
     setmark('bondpadbot')
-    
+
+    # Define tunnel position
+    gomark('chip00')
+    go(12560, 9900)
+    setmark('tunnelin')
+    layername('text')
+    wirehollow(1, l_tunnel, 0.7e3, 1)
+    wire(1j, dist2mark('chipFF')[1], 1)
+    wire(-1j, dist2mark('chip00')[1], 1)
+    go(4000, 0)
+    setmark('tunnelout')
+    wire(1j, dist2mark('chipFF')[1], 1)
+    wire(-1j, dist2mark('chip00')[1], 1)
+
+
+def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
+    """
+    DEPRECATED, DO NOT USE
+    """
+    #    Chip size
+    chip_lx = 42e3
+    chip_ly = 14e3
+
+#    antenna origin
+    origin_antenna = (7200,7000)
+    #==============================================================================
+    # write chip edge
+    #==============================================================================
+    #    write in ?? layer
+    layername('text')
+    setmark('chip00')
+    go(chip_lx, chip_ly)
+    setmark('chipFF')
+    gomark('chip00')
+    go(*origin_antenna)
+    setmark('antenna')
+    gomark('chip00')
+    def writecorner(direction):
+        '''
+        written for bottom left
+        '''
+
+        setmark('temp')
+        rot(direction)
+        go(0,25)
+        wire(1, 2000, 50)
+        go(25, -25)
+        wire(1j, 2000, 50)
+        gomark('temp')
+    writecorner(1)
+    go(chip_lx, 0)
+    writecorner(1j)
+    go(0, chip_ly)
+    writecorner(-1)
+    go(-chip_lx, 0)
+    writecorner(-1j)
+
+#    define coordinates where readout cpws end
+    gomark('chip00')
+    go(41e3, 12.1e3)
+    setmark('bondpadtop')
+    gomark('chip00')
+    go(41e3, 1.9e3)
+    setmark('bondpadbot')
+
 #==============================================================================
 #     define labyrinth layout
-#==============================================================================    
+#==============================================================================
     diagonal = True
-    rturn = 0.5e3  
+    rturn = 0.5e3
 #    x_prelab = 2*(2181+1000)
 #    y_prelab = 2750 + 2*1000
     x_prelab = 2*(2181+500)
@@ -80,11 +142,11 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
     y45 = rturn - x45
 #==============================================================================
 #     Leaky antenna here
-#==============================================================================    
-    
+#==============================================================================
+
     from .leaky_antenna import leaky_300to900
     if rotate_leaky:
-        xy_membrane = leaky_300to900(1j, mainline.line)   
+        xy_membrane = leaky_300to900(1j, mainline.line)
     else:
         xy_membrane = leaky_300to900(1, mainline.line)
 #==============================================================================
@@ -92,7 +154,7 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
 #==============================================================================
     # Path to tunnel
     gomark('antennaOut')
-    
+
     if rotate_leaky:
         x_draw = x2m('tunnelin')
         y_draw = y2m('tunnelin')
@@ -101,7 +163,7 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
         x_diag = y_diag
         l_diag = np.sqrt(2)*y_diag
         x_straight = x_draw - x_diag - rturn
-        
+
 #        msgo(1j, y_straight, w_msl, w_sin)
         mainline.wirego(1j, y_straight)
         setmark('diaginit')
@@ -127,12 +189,12 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
             x_diagmode1 = x_diagmode1 + x_diagmode2
             x_diagmode2 = 0
             print 'CHANGED labyrinth x-lengths: {:1.3f} mm, {:1.3f} mm'.format(x_diagmode1, x_diagmode2)
-        layername('MSline')    
+        layername('MSline')
         # Do turn diagonally:
 #            msgo(1, x_diagmode1, w_msl, w_sin)
 #            ms45upgo(1, rturn, w_msl, mesh, w_sin)
 #            msgo(1+1j, l_diag, w_msl, w_sin)
-#            ms45downgo(1+1j, rturn, w_msl, mesh, w_sin)        
+#            ms45downgo(1+1j, rturn, w_msl, mesh, w_sin)
 #            msgo(1, x_diagmode2, w_msl, w_sin)
         mainline.wirego(1, x_diagmode1)
         mainline.up45go(1, rturn)
@@ -141,13 +203,13 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
         mainline.wirego(1, x_diagmode2)
         ltot_laby = x_diagmode1 + x_diagmode2 + l_diag + rturn*np.pi/2.+l_tunnel+l_safety
         print 'labyrinth length : {:1.3f} mm'.format(ltot_laby)
-        
+
     # tunnel indicator
-#    msgo(1, l_tunnel, w_msl, w_sin)  # line through tunnel   
+#    msgo(1, l_tunnel, w_msl, w_sin)  # line through tunnel
 #    msgo(1, l_safety, w_msl, w_sin) # distance from tunnel
     mainline.wirego(1, l_tunnel)
     mainline.wirego(1, l_safety)
- 
+
 
     # do stuff...
 
@@ -161,7 +223,7 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
     KOHangle *= spc.degree
     h_wafer = 350.
     cornerspace = 300
-        
+
     # Trenches
     h_trenches = h_wafer * 0.35
     w_draw = h_trenches / np.tan(KOHangle) * 2
@@ -186,32 +248,32 @@ def Mosaic42x14_leaky(layers, mainline, rotate_leaky):
 #==============================================================================
     layername('text')
     gomark('tunnelin')
-    wirehollow(1, l_tunnel, 0.7e3, 1)    
+    wirehollow(1, l_tunnel, 0.7e3, 1)
     wire(1j, dist2mark('chipFF')[1], 1)
     wire(-1j, dist2mark('chip00')[1], 1)
     gomark('tunnelout')
     wire(1j, dist2mark('chipFF')[1], 1)
-    wire(-1j, dist2mark('chip00')[1], 1)    
+    wire(-1j, dist2mark('chip00')[1], 1)
     gomark('labyend')
-    
+
 def testchip20x20(layers):
     lx_chip = 20e3
     ly_chip = 20e3
     layername('text')
-    setmark('chip00')   
-   
+    setmark('chip00')
+
     # Antenna origin
     go(lx_chip/2., ly_chip/2.)
     setmark('antenna')
     go(lx_chip/2., ly_chip/2.)
-    setmark('chipFF')       
-    gomark('chip00')    
+    setmark('chipFF')
+    gomark('chip00')
     # Chip corners
     def writecorner(direction):
         '''
         written for bottom left
         '''
-        
+
         setmark('temp')
         rot(direction)
         go(0,25)
@@ -226,7 +288,7 @@ def testchip20x20(layers):
     writecorner(-1)
     go(-lx_chip, 0)
     writecorner(-1j)
-    
+
     # define starting positions of readout CPW
     dx_bondpad = 1e3
     gomark('chip00')
@@ -236,25 +298,25 @@ def testchip20x20(layers):
     go(lx_chip - dx_bondpad, ly_chip/2.)
     setmark('bondpadright')
     return (lx_chip, ly_chip)
-    
+
 def testchip20x20_small(layers):
     lx_chip = 19.9e3
     ly_chip = 19.9e3
     layername('text')
-    setmark('chip00')   
-   
+    setmark('chip00')
+
     # Antenna origin
     go(lx_chip/2., ly_chip/2.)
     setmark('antenna')
     go(lx_chip/2., ly_chip/2.)
-    setmark('chipFF')       
-    gomark('chip00')    
+    setmark('chipFF')
+    gomark('chip00')
     # Chip corners
     def writecorner(direction):
         '''
         written for bottom left
         '''
-        
+
         setmark('temp')
         rot(direction)
         go(0,25)
@@ -269,7 +331,7 @@ def testchip20x20_small(layers):
     writecorner(-1)
     go(-lx_chip, 0)
     writecorner(-1j)
-    
+
     # define starting positions of readout CPW
     dx_bondpad = 1e3
     gomark('chip00')
@@ -279,3 +341,6 @@ def testchip20x20_small(layers):
     go(lx_chip - dx_bondpad, ly_chip/2.)
     setmark('bondpadright')
     return (lx_chip, ly_chip)
+
+#del b
+#del base

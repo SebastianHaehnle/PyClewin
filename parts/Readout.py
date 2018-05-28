@@ -5,7 +5,7 @@ Created on Mon Jan 09 17:43:25 2017
 @author: sebastian
 """
 
-from clepywin import *
+from PyClewin import *
 
 def bondpadM4000(direction, rocpw):
     '''
@@ -28,7 +28,7 @@ def bondpadM4000(direction, rocpw):
     cpwgo(1, lbond, wbond, sbond)
     # Add isolation from ground
     wire(-1, lisolation, wbond + 2*sbond)
-    gomark('temp')    
+    gomark('temp')
 
 def bondpadM4001(direction, rocpw, distToEdge):
     """
@@ -55,7 +55,7 @@ def bondpadM4001(direction, rocpw, distToEdge):
     cpwgo(1, lbond, wbond, sbond)
     # Add isolation from ground
     wire(1, lisolation, wbond + 2*sbond)
-    gomark('temp')    
+    gomark('temp')
 
 def couplerM4000(kidmark, lc, dc, cpwwide, cpwro, rturn):
     """
@@ -80,7 +80,7 @@ def couplerM4000(kidmark, lc, dc, cpwwide, cpwro, rturn):
     # Draw line to starting point on the right
     cpwro.wirego(1, x2m('temp'))
     gomark(kidmark)
-    go(lineDist, 0)    
+    go(lineDist, 0)
     if y2m('temp')-rturn < 200:
         bridgeFront = False
     else:
@@ -89,7 +89,7 @@ def couplerM4000(kidmark, lc, dc, cpwwide, cpwro, rturn):
     cpwro.wirego(-1j, y2m('temp')-rturn, bridgesOff = True, bridgeDistance = 100, bridgeStart = True)
 
     cpwro.downgo(-1j, rturn, bridgeFront = bridgeFront)
-    
+
 def couplerM4000left(direction, kidmark, lc, dc, cpwwide, cpwro, rturn):
     """
     M4000 kid coupler design, attaches to the left side of a straight kid
