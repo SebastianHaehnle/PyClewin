@@ -116,3 +116,191 @@ def kidM4001membrane(direction, kid, hybrid, wide, lShort, funcTransHybridWide, 
     wire(1, wide.gap , wide.wTotal())
     rot(np.conjugate(direction))
     setmark('KIDend%d' % kid.index)
+
+class KID_mask(object):
+    def __init__(self, shape = 'straight', short_length = 10):
+        self.shape = shape
+        self.short_length = short_length
+
+        self.kidids = []
+        self.connections_coupler = {}
+        self.connections_short = {}
+
+
+class Hybrid(KID_mask):
+    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler,  short_length = 10, shape = 'straight',  SiN_patchtype = 'full', SiN_layer = 'SiN_wafer', SiN_size = [20, 100]):
+        """
+        This instance defines the general KID structure to be used (hybrid cpw, wide cpw, coupler cpw).
+        Use draw() method to write individual KIDs with defined section lengths.
+
+        SiN_margin is [length_margin, width_margin]
+        """
+        KID_mask.__init__(self, shape = shape, short_length = short_length)
+        self.type = 'hybrid'
+        self.line_hybrid = line_hybrid
+        self.line_wide = line_wide
+        self.line_coupler = line_coupler
+
+        self.transition_hybrid = transition_hybrid
+        self.transition_coupler = transition_coupler
+        self.SiN_patchtype = SiN_patchtype
+        self.SiN_layer = SiN_layer
+        self.SiN_size = SiN_size
+
+
+
+
+    def draw(self, direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included = True, start = 'short'):
+        """
+        Draws KID with structure as defined by self instance at current point.
+        L_tot = l_hybrid + l_wide + l_coupler
+
+        Input:
+            start : Defines where the input position is defined. Default is at the short (i.e. the hybrid end)
+
+        Inserts end of coupler position as "KID_coupler_[kid_id]" where kid_id is input parameter
+        """
+        if coupler_included:
+            l_wide = l_wide - l_coupler
+        self.kidids.append(kid_id)
+        rot(direction)
+        setmark('kidlevel_short')
+        if 'straight' in self.shape:
+            if self.short_length != 0:
+                base.layername(self.line_hybrid.linelayer)
+                base.wire(-1, self.short_length, self.line_hybrid.line)
+            self.connections_short[kid_id] = base.connector(direction, 'KID_short_%d' % kid_id)
+            self.line_hybrid.wirego(1, l_hybrid)
+            self.transition_hybrid(1, self.line_hybrid, self.line_wide)
+            setmark('kidlevel_widestart')
+            self.line_wide.wirego(1, l_wide)
+            if 'elbow' in self.shape:
+                self.transition_coupler(1j, self.line_wide, self.line_coupler, direction_in = 1)
+                self.line_coupler.wirego(1j, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(1j)
+                self.connections_coupler[kid_id] = base.connector(np.exp(1j*(np.angle(direction)+np.pi/2)), 'KID_coupler_%d' % kid_id)
+            elif self.transition_coupler == None:
+                self.line_coupler.wirego(1, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(1)
+                self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
+            else:
+                self.transition_coupler(1, self.line_wide, self.line_coupler)
+                self.line_coupler.wirego(1, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(1)
+                self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
+            self.draw_SiN(*self.SiN_size)
+        gomark('kidlevel_open')
+        rot(np.conjugate(direction))
+        setmark('KID_coupler_%d' % kid_id)
+
+    def draw_SiN(self, length, width):
+        base.layername(self.SiN_layer)
+        if self.SiN_patchtype == 'full' and self.shape == 'straight':
+            if self.type == 'hybrid_fabryperot':
+                gomark('kidlevel_short')
+            elif self.type == 'broadband':
+                gomark('kidlevel_hybridstart')
+            else:
+                gomark('kidlevel_short')
+            base.wire(-1, length, width)
+            base.wire(1, x2m('kidlevel_widestart') + length, width)
+        base.layername(self.line_hybrid.gndlayer)
+
+class Hybrid_Fabryperot(Hybrid):
+    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer = 'SiN_wafer', SiN_size = [20, 100]):
+        Hybrid.__init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler,
+                     SiN_layer = SiN_layer, SiN_size = SiN_size,
+                     SiN_patchtype = 'full', shape = 'straight', short_length = 0)
+        self.type = 'hybrid_fabryperot'
+        self.line_thz = line_thz
+        self.transition_thz = transition_thz
+
+    def draw(self, direction, l_hybrid, l_wide, l_coupler, l_thz, kid_id, coupler_included = True, start = 'short'):
+        setmark('kidlevel_fp')
+        # Draw thz line and transition to aluminum first
+        self.line_thz.wirego(direction, l_thz)
+        self.transition_thz(direction, self.line_thz, self.line_hybrid)
+        super(Hybrid_Fabryperot, self).draw(direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included, start)
+
+
+class KID_NBTIN(KID_mask):
+    def __init__(self, line_wide, line_coupler, transition_coupler, shape = 'straight', short_length = 0):
+        KID_mask.__init__(self, shape = shape, short_length = short_length)
+        self.line_wide = line_wide
+        self.line_coupler = line_coupler
+        self.transition_coupler = transition_coupler
+
+
+    def draw(self, direction, l_wide, l_coupler, kid_id, coupler_included = True, start = 'short'):
+        if coupler_included:
+            l_wide = l_wide - l_coupler
+        self.kidids.append(kid_id)
+
+        rot(direction)
+        setmark('kidlevel_short')
+        if 'straight' in self.shape:
+            base.layername(self.line_wide.gndlayer)
+            if self.short_length != 0:
+                base.wire(-1, self.short_length, self.line_wide.line)
+            self.connections_short[kid_id] = base.connector(direction, 'KID_short_%d' % kid_id)
+            self.line_wide.wirego(1, l_wide)
+            if 'elbow' in self.shape:
+                self.transition_coupler(1j, self.line_wide, self.line_coupler, direction_in = 1)
+                self.line_coupler.wirego(1j, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(1j)
+                self.connections_coupler[kid_id] = base.connector(np.exp(1j*(np.angle(direction)+np.pi/2)), 'KID_coupler_%d' % kid_id)
+            elif self.transition_coupler == None:
+                self.line_coupler.wirego(1, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(1)
+                self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
+            else:
+                self.transition_coupler(1, self.line_wide, self.line_coupler)
+                self.line_coupler.wirego(1, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(1)
+                self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
+        gomark('kidlevel_open')
+        rot(np.conjugate(direction))
+        setmark('KID_coupler_%d' % kid_id)
+
+class KID_COUPLED_BROADBAND(Hybrid_Fabryperot):
+    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer = 'SiN_wafer', SiN_size = [20, 100]):
+        Hybrid_Fabryperot.__init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer, SiN_size)
+        self.type = 'broadband'
+
+    def draw(self, direction_thz, direction_kid, l_hybrid, l_wide, l_coupler, l_thz, kid_id, coupler_included = True, start = 'short'):
+        if coupler_included:
+            l_wide = l_wide - l_coupler
+        self.kidids.append(kid_id)
+
+        l_thz_2 = 24
+        r_thz = 4.7
+        l_thz_curve = r_thz*np.pi/2
+        setmark('test_major')
+        setmark('kidlevel_short')
+        self.line_thz.wirego(direction_thz, l_thz - l_thz_2 - l_thz_curve)
+        self.line_thz.turngo(direction_thz, direction_kid, r_thz)
+        self.line_thz.wirego(0, l_thz_2/2.)
+        # dont draw bridge
+#        try:
+#            self.line_thz.bridge.draw(self.line_thz.direction, self.line_thz.line, self.line_thz.slot)
+#        except:
+#            print "WARNING: No bridge defined for thz line in broadband coupled KID."
+        self.line_thz.wirego(0, l_thz_2/2.)
+        setmark('kidlevel_hybridstart')
+        localdir = self.transition_thz(self.line_thz.direction, self.line_thz, self.line_hybrid)
+        self.line_hybrid.wirego(localdir, l_hybrid)
+        localdir = self.transition_hybrid(self.line_hybrid.direction, self.line_hybrid, self.line_wide)
+        setmark('kidlevel_widestart')
+        self.line_wide.wirego(localdir, l_wide)
+        if self.transition_coupler == None:
+            self.line_coupler.wirego(self.line_wide.direction, l_coupler)
+            self.line_coupler.open_end(0)
+            self.connections_coupler[kid_id] = base.connector(-self.line_coupler.direction, 'KID_coupler_%d' % kid_id)
+        setmark('KID_coupler_%d' % kid_id)
+        self.draw_SiN(*self.SiN_size)

@@ -11,7 +11,7 @@ import numpy as np
 import scipy.constants as spc
 
 
-def Deshima42x14(layers):
+def Deshima42x14(layers, chipname = ''):
     chip_lx = 42e3
     chip_ly = 14e3
 #    antenna origin
@@ -28,6 +28,14 @@ def Deshima42x14(layers):
     go(*origin_antenna)
     setmark('antenna')
     gomark('chip00')
+    # Write chipname
+    layername('Aluminum')
+    if chipname != '':
+        go(1e3, 1e3)
+        base.text(1, chipname, 500)
+    gomark('chip00')
+    layername('text')
+
     def writecorner(direction):
         '''
         written for bottom left
@@ -61,13 +69,14 @@ def Deshima42x14(layers):
     go(12560, 9900)
     setmark('tunnelin')
     layername('text')
-    wirehollow(1, l_tunnel, 0.7e3, 1)
+    wirehollow(1, 4e3, 0.7e3, 1)
     wire(1j, dist2mark('chipFF')[1], 1)
     wire(-1j, dist2mark('chip00')[1], 1)
     go(4000, 0)
     setmark('tunnelout')
     wire(1j, dist2mark('chipFF')[1], 1)
     wire(-1j, dist2mark('chip00')[1], 1)
+
 
 
 def Mosaic42x14_leaky(layers, mainline, rotate_leaky):

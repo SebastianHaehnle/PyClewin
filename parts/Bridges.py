@@ -17,7 +17,6 @@ class Bridge():
     Input:
         layerDiel   :: layer for dielectric
         layerMetal  :: layer for metal
-        extendDiel  :: how much
     '''
     def __init__(self, layerDiel, layerMetal, extendDiel, lDiel, extendMetal, lMetal):
         self.layerDiel = layerDiel

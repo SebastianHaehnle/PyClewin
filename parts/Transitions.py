@@ -7,6 +7,8 @@ Created on Tue Jan 10 14:15:43 2017
 
 from PyClewin import *
 
+import numpy as np
+
 def transMSHybridM4000(direction, ms, hybrid, **kwargs):
     '''
     Microstrip to Hybrid transition where the MS line drops down from the dielectric and the Aluminum of the hybrid creates a galvanic connection on top. The MS gnd continues after a taper as the CPW gnd
@@ -21,8 +23,8 @@ def transMSHybridM4000(direction, ms, hybrid, **kwargs):
     # Draw continuing GND plane
     setmark('transitionlevel')
     layername(hybrid.gndlayer)
-    broadengo(1, ltaper, ms.line, hybrid.wTotal())
-    wire(1, loverlap, hybrid.wTotal())
+    broadengo(1, ltaper, ms.line, hybrid.wTotal)
+    wire(1, loverlap, hybrid.wTotal)
     # Draw MS line
     gomark('transitionlevel')
     layername(ms.linelayer)
@@ -57,11 +59,100 @@ def transMSWideM4000(direction, ms, wide, **kwargs):
 
 
 def transHybridWideM4000(direction, hybrid, wide, **kwargs):
-    ltrans = 21.
+    ltrans = kwargs.pop('ltrans', 21)
     rot(direction)
     layername(hybrid.linelayer)
     wire(1, 2/3.*ltrans, hybrid.line)
     layername(hybrid.gndlayer)
     broaden(1, 1/3.*ltrans, hybrid.line, wide.line/2.)
-    cpwbroadengo(1, ltrans, 0, hybrid.wTotal(), wide.line, wide.gap)
+    cpwbroadengo(1, ltrans, 0, hybrid.gap+hybrid.line/2., wide.line, wide.gap)
     rotback()
+
+def transTHzHybrid(direction, line_thz, line_hybrid):
+    """
+    Values from Nuri_FP_v2.4.cif, Mask for D1006
+    """
+    # Shape definitions
+    l_taper1 = 6
+    l_wide = 6
+    s_wide = 4.8
+    w_wide = 3.0
+    l_taper2 = 3.3
+    l_overlap = 5
+
+    # Drawing
+    rot(direction)
+
+    line_thz.tapergo(1, l_taper1, w_wide, s_wide) # taper
+    base.cpwgo(1, l_wide, w_wide, s_wide) # wide part
+    base.broaden(1, l_taper2, w_wide + 2*s_wide, line_hybrid.wTotal) # reverse taper
+    layername(line_hybrid.linelayer) # aluminum layer
+    base.wire(-1, l_overlap, line_hybrid.line) # draw aluminum line overlap
+
+    rot(np.conjugate(direction))
+    return direction
+
+
+def transElbowcouplerCurved(direction_out, line_wide, line_coupler, **kwargs):
+    direction_in = kwargs.pop('direction_in', 1)
+    # Check how long taper of cpw should be, depending on tapering angle
+    angle = kwargs.pop('angle', np.pi/6.)
+    l1 = np.tan(angle)*np.abs(line_wide.line - line_coupler.line)
+    l2 = np.tan(angle)*np.abs(line_wide.wTotal - line_coupler.wTotal)
+    # Taper from wide section to coupler section, if necessary
+    if np.isclose(l1, 0) and np.isclose(l1, 0):
+        pass
+    else:
+        print l1, l2
+        l_taper = max(l1, l2)
+        rot(direction_in)
+        layername(line_wide.gndlayer)
+        line_wide.tapergo(direction_in, l_taper, line_coupler.line, line_coupler.gap)
+    # Draw curve depending on output direction, currently only supports direction_in == 1
+    if (direction_in == 1 and direction_out == 1j):
+        line_coupler.upgo(direction_in)
+    else:
+        line_coupler.downgo(direction_in)
+    rot(np.conjugate(direction_in))
+
+def coupler_Fabryperot(direction, side, cpw_thz, cpw_fp, param_1, param_2):
+    """
+    side == 'fp' or 'thz' # selects which side of the coupler the starting position is located
+    param_1 and param_2 correspond to p1 and p2 in Nuris coupler in the sonnet file, with p2 being the driving factor to change Qc
+    param_1 == length of broad coupler part
+    param_2 == starting distance of fp_line from end of taper
+    """
+    l_taper = np.sqrt(3)*(1.5*cpw_fp.line + 1)
+    w_taper = 3*cpw_fp.line + 2*2
+    s_taper = cpw_thz.gap
+
+    rot(direction)
+
+    if side == 'thz':
+        cpw_thz.tapergo(direction, l_taper, w_taper, s_taper)
+        try:
+            layername(cpw_thz.gndlayer)
+        except:
+            pass
+        base.cpw(direction, param_1, w_taper, s_taper)
+        go(param_2, 0)
+    elif side == 'fp':
+        go(param_2 + l_taper, 0)
+        cpw_thz.tapergo(-direction, l_taper, w_taper, s_taper)
+        try:
+            layername(cpw_thz.gndlayer)
+        except:
+            pass
+        base.cpw(-direction, param_1, w_taper, s_taper)
+        go(l_taper, 0)
+    else:
+        print 'WARNING: INVALID SIDE'
+    rot(np.conjugate(direction))
+    return direction
+
+def coupler_Fabryperot_gap(direction, side, gap_length):
+    rot(direction)
+    go(gap_length, 0)
+    rot(np.conjugate(direction))
+    return direction
+

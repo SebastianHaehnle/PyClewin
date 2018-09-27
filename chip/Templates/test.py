@@ -5,7 +5,7 @@ Created on Mon Sep 05 11:20:37 2016
 @author: sebastian
 """
 
-from clepywin import *
+from PyClewin import *
 
 import numpy as np
 
@@ -44,12 +44,15 @@ g = [1000, 1000, 1]
 h = [1000, 0, 1]
 
 layername('MSline')
-pol = clePolygon(a, b, c, d, e, f, g, h)
-pol.draw()
+foo = parts.CPWs.CPW(2,2,36,100, gndlayer ='MSline')
 
-pol2 = pol.scale(100)
-layername('SiNwafer')
-pol2.draw()
+foo.wirego(1, 100)
+
+go(-1e3, -1e3)
+setmark('test')
+go(1e3, 1e3)
+foo.connect(connector(-1, 'test'))
+
 
 #alignmentCircles('Hybrids')
 #alignmentSquares('MSgnd')
@@ -61,7 +64,7 @@ pol2.draw()
 #misc stuff at the end
 outroScript(1)
 # write to file
-#writeScript(filename)
+writeScript(filename)
 
 #print gg.cle
 #print gg.s

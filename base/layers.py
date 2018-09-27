@@ -5,13 +5,13 @@ Created on Mon Sep 05 11:54:55 2016
 @author: sebastian
 """
 
-from script import *
+from ..script import *
 import sys
 
 def introLayers():
     gg.w('(Layer names:);\n')
 
-    
+
 def addLayer(num, name, color):
     gg.w('L L{}; (CleWin: {} {}/{} {}));\n'.format(num, num, name, color, color))
     gg.layers[name] = color
@@ -20,14 +20,16 @@ def layer(num):
     gg.w('L L{};\n'.format(num))
 
 def layername(name, dictionary = gg.layers):
-    num = layerindex(name, dictionary)
-    layer(num)
+    if name != gg.current_layer:
+        num = layerindex(name, dictionary)
+        layer(num)
+        gg.current_layer = name
 
 def layerindex(name, dictionary):
     kv = [(k,v) for k, v in dictionary.items()]
     index = 0
     i = 0
-    found = False   
+    found = False
     for k, v in kv:
         if k == name:
             index = i

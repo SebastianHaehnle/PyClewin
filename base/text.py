@@ -5,10 +5,10 @@ Created on Mon Oct 03 16:46:40 2016
 @author: sebastian
 """
 
-from script import *
+from ..script import *
 from PyClewin import *
-from ucs import *
-from wires import poly
+from .ucs import *
+from .wires import poly
 
 def introfont():
     gg.w('(CleFont -2048 0 0 0 0 16777216 536870919 1634300481 108 0 0 0 0 0 0);\n')
@@ -30,7 +30,7 @@ class text():
 
     def writetext(self):
         introfont()
-        gg.w('(CleText {:6.0f} {:6.0f} {:6.0f} {:6.0f} {:6.0f} {});\n'.format(gg.cle[0], gg.cle[1], self.numchars, self.height*gg.scale, self.lentotal, self.string))
+        gg.w('(CleText {:d} {:d} {:d} {:d} {:d} {});\n'.format(int(gg.cle[0]), int(gg.cle[1]), self.lentotal, int(self.height*gg.scale), self.lentotal, self.string))
         setmark('textstart')
         rot(self.direction)
         go(0, - self.height/2.)
@@ -104,7 +104,7 @@ class text():
                 charxy[i] = charxyflat[i].reshape((size[i], 2))
                 self.charxy[i] = (charxy[i] * self.height/text.height00/gg.scale).transpose()
                 self.width[i] = np.max(self.charxy[i][0]) - np.min(self.charxy[i][0])
-            self.width = max(self.width) - min(self.width)
+            self.width = max(self.width)
         else:
             charxyflat = np.array(map(int, charstr.split()))
             size = len(charxyflat)/2

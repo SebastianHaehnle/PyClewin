@@ -5,40 +5,41 @@ Created on Fri Sep 09 10:08:12 2016
 @author: sebastian
 """
 
-from script import *
-from base import *
+from ..script import *
+from ..base import *
 import numpy as np
 
 def wirehollow(direction, L, w, t_border):
     rot(direction)
-    wirego(1j, w/2, t_border)    
+    wirego(1j, w/2, t_border)
     wirego(1, L, t_border)
-    wirego(-1j, w, t_border)    
+    wirego(-1j, w, t_border)
     wirego(-1, L, t_border)
     wirego(1j, w/2, t_border)
     rot(np.conjugate(direction))
-    
+
 def makebar(L, W):
     xy = np.array([[-L/2., L/2., L/2., -L/2.], [-W/2., -W/2., W/2., W/2.]])
     return xy
-    
+
 def bar(direction, L, W, shift = (0,0)):
     rot(direction)
     poly(makebar(L, W), shift)
     rotback()
- 
+
+
 def circle(R):
     D = 2*R*gg.scale
     gg.w('R {:6.0f} {:6.0f} {:6.0f} '.format(D, *gg.position))
     gg.nl()
-    
+
 def square(L, shift = (0,0)):
-    poly(makebar(L, L), shift)    
+    poly(makebar(L, L), shift)
 
 def squares(layer, polygon, l_sq, d_sq, corner = 1):
     '''
     Fill polygon with squares
-    input: 
+    input:
         layer : layername
         poly : polygon to be filled
         l_sq : square size
@@ -50,18 +51,18 @@ def squares(layer, polygon, l_sq, d_sq, corner = 1):
     xybr= np.array([polygon[0].max(), polygon[1].min()])
     xytl = np.array([polygon[0].max(), polygon[1].max()])
     xytr = np.array([polygon[0].min(), polygon[1].max()])
-    
+
     lxbot = abs(xybr[0] - xybl[0])
     lxtop = abs(xytr[0] - xytl[0])
     lyleft = abs(xytl[1] - xybl[1])
-    lyright = abs(xytr[1] - xybr[1])    
-    
+    lyright = abs(xytr[1] - xybr[1])
+
     print 'FILLSQUARES\n\n\n\n'
     print lxbot, lxtop, lyleft, lyright
     minspace = 1.5*l_sq + d_sq
-    shift0 = [0.5*l_sq, 0.5*l_sq] 
+    shift0 = [0.5*l_sq, 0.5*l_sq]
     shift = [0.5*l_sq, 0.5*l_sq]
-    if corner == 1:    
+    if corner == 1:
         go(*xybl)
         square(l_sq, shift)
         shift[0] += l_sq + d_sq
@@ -73,44 +74,45 @@ def squares(layer, polygon, l_sq, d_sq, corner = 1):
             shift[1] += l_sq + d_sq
             shift[0] = shift0[0]
             print shift[1]
-   
-def squares_inverse(layer, H, W, l_sq, d_sq):
+
+def squares_inverse(layer, W, H, l_sq, d_sq):
     '''
     draws a grid of inverse squares using current position as bottom left
         W --> extension to right
         H --> extension to top
     '''
+    layername(layer)
     lunit = l_sq + d_sq
-    Nsq_h = int(H/lunit) 
-    Nsq_w = int(W/lunit) 
+    Nsq_h = int(H/lunit)
+    Nsq_w = int(W/lunit)
     edge_h = (H % lunit) /2. + d_sq/2.
     edge_w = (W % lunit) /2. + d_sq/2.
     for i in range(Nsq_w):
         shift = (0, -(edge_w + i*lunit))
         wire(1j, H, d_sq, shift)
     for i in range(Nsq_h):
-        shift = (0, edge_h + i*lunit)        
+        shift = (0, edge_h + i*lunit)
         wire(1, W, d_sq, shift)
 
 ### Probably not in use
 class clePolygon(object):
     def __init__(self, *args, **kwargs):
         """
-        Input: each point in polygon as [x, y, bool], where bool = True for concave position (inner corner) and bool = False for convex position (outer corner) 
+        Input: each point in polygon as [x, y, bool], where bool = True for concave position (inner corner) and bool = False for convex position (outer corner)
         """
         self.points = np.array([ip[:2] for ip in args])
         self.is_concave = np.array([ip[2] for ip in args])
-        
+
         self.xlim = kwargs.pop('xlim', [None, None])
         self.ylim = kwargs.pop('ylim', [None, None])
-        
+
     @property
     def length(self):
         return len(self.points)
-        
+
     def draw(self):
         poly(self.points.transpose())
-    
+
     def scale(self, delta, **kwargs):
         """
         not multiplicative scale but increase whole polygon size
@@ -137,7 +139,7 @@ class clePolygon(object):
         return clePolygon(*newPoints)
 
 
-    @property    
+    @property
     def _direction(self):
         retValue = np.zeros(self.points.shape)
         for i in xrange(self.length):
@@ -156,6 +158,5 @@ class clePolygon(object):
             if not self.is_concave[i]:
                 retValue[i] = retValue[i] * -1
         return retValue
-            
-            
-            
+
+

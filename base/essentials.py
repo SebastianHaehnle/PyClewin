@@ -5,7 +5,7 @@ Created on Mon Sep 05 11:27:58 2016
 @author: sebastian
 """
 
-from script import *
+from ..script import *
 
 
 def introScript():
@@ -23,8 +23,8 @@ def outroScript(synumber):
     if synumber > 0:
         gg.w('C {};\n'.format(synumber))
     gg.w('E\n')
-    
+
 def writeScript(filename):
     with open(filename, 'w') as ff:
         ff.write(gg.s)
-        
+
