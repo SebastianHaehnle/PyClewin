@@ -281,7 +281,6 @@ class KID_COUPLED_BROADBAND(Hybrid_Fabryperot):
         l_thz_2 = 24
         r_thz = 4.7
         l_thz_curve = r_thz*np.pi/2
-        setmark('test_major')
         setmark('kidlevel_short')
         self.line_thz.wirego(direction_thz, l_thz - l_thz_2 - l_thz_curve)
         self.line_thz.turngo(direction_thz, direction_kid, r_thz)
@@ -304,3 +303,28 @@ class KID_COUPLED_BROADBAND(Hybrid_Fabryperot):
             self.connections_coupler[kid_id] = base.connector(-self.line_coupler.direction, 'KID_coupler_%d' % kid_id)
         setmark('KID_coupler_%d' % kid_id)
         self.draw_SiN(*self.SiN_size)
+
+class KID_MS_pure(KID_mask):
+    def __init__(self, line_ms, line_coupler, shape = 'straight', short_length = -1):
+        KID_mask.__init__(self, shape = shape, short_length = short_length)
+        self.type = 'ms'
+        self.line_ms = line_ms
+        self.line_coupler = line_coupler
+
+    def draw(self, direction, l_kid, l_coupler, kid_id, coupler_included = True, start = 'short'):
+        if coupler_included:
+            l_kid = l_kid - l_coupler
+        self.kidids.append(kid_id)
+        setmark('kidlevel_short')
+        if self.short_length < 0:
+            self.line_ms.end_open(-direction, 10)
+        else:
+            self.line_ms.end_short(direction, 10)
+        self.line_ms.wirego(direction, l_kid)
+        # Go to starting point of elbow, check where the 0 is really defined
+        base.movedirection(-direction, self.line_coupler.line/2.)
+        self.line_coupler.wirego(self.line_ms.direction*1j, l_coupler + self.line_coupler.line/2.)
+
+#        print "WARNING: COUPLER NOT FULLY IMPLEMENTED"
+        self.connections_coupler[kid_id] = base.connector(-self.line_ms.direction, 'KID_coupler_%d' % kid_id)
+        setmark('KID_coupler_%d' % kid_id)

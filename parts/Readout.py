@@ -266,6 +266,10 @@ class couplerDeshima(object):
         self.cpw_coupler = temp_coupler
         self.d_coupler = temp_d_coupler
 
+class coupler_CPWtoMS(object):
+    def __init__(self, cpw_readout):
+        pass
+
 
 
 class ReadoutLine(object):

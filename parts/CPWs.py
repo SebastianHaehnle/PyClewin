@@ -35,6 +35,7 @@ class CPW(object):
 #        print kwargs
         self.gndlayer = gndlayer
         self.bridge = kwargs.pop('bridge', None)
+        self.tm_type = 'cpw'
 
     @property
     def slot(self):
@@ -43,6 +44,16 @@ class CPW(object):
     @property
     def wTotal(self):
         return self.line + 2*self.gap
+
+    def process_direction(self, direction):
+        if direction == None or direction == 0:
+            direction = self.direction
+        else:
+            self.direction = direction
+        return direction
+
+    def generate_covered(self, coverlayer, coverwidth):
+        return CPWcovered(self.line, self.gap, self.mesh, self.R, self.gndlayer, coverlayer, coverwidth)
 
     def taper(self, direction, L, newline, newgap):
         if direction == None or direction == 0:
@@ -188,6 +199,7 @@ class CPW(object):
         rot(np.conjugate(direction))
         return direction
 
+
     def connect(self, connection, *args, **kwargs):
         distance = base.dist2markSigned(connection.mark)
         direction_in = np.array([self.direction.real, self.direction.imag])
@@ -317,8 +329,6 @@ class CPWhybrid(CPW):
         layername(self.gndlayer)
         turndown(direction, R, self.wTotal, self.mesh)
         return direction
-
-
 
 class CPWwithBridge(CPW):
     def __init__(self, line, gap, mesh, R, cpwlayer, bridgeClass, bridgeDistance):
@@ -455,6 +465,36 @@ class CPWreadout(CPWwithBridge):
 #        if R == -1:
 #            R = self.R
 
+class CPWcovered(CPW):
+    def __init__(self, line, gap, mesh, R, gndlayer, coverlayer, coverwidth):
+        CPW.__init__(self, line, gap, mesh, R, gndlayer)
+        self.coverlayer = coverlayer
+        self.coverwidth = coverwidth
+
+    def wire(self, direction, L, *args, **kwargs):
+        self.process_direction(direction)
+        layername(self.coverlayer)
+        wire(direction, L, self.coverwidth)
+        super(CPWcovered, self).wire(direction, L, *args, **kwargs)
+        return direction
+
+    def up(self, direction, R = -1, *args, **kwargs):
+        self.process_direction(direction)
+        if R == -1:
+            R = self.R
+        layername(self.coverlayer)
+        wire(direction, R + self.coverwidth, self.coverwidth)
+        super(CPWcovered, self).up(direction, R, *args, **kwargs)
+        return direction
+
+    def down(self, direction, R = -1, *args, **kwargs):
+        self.process_direction(direction)
+        if R == -1:
+            R = self.R
+        layername(self.coverlayer)
+        wire(direction, R + self.coverwidth, self.coverwidth)
+        super(CPWcovered, self).down(direction, R, *args, **kwargs)
+        return direction
 
 
 
