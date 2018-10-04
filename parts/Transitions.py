@@ -150,6 +150,67 @@ def coupler_Fabryperot(direction, side, cpw_thz, cpw_fp, param_1, param_2):
     rot(np.conjugate(direction))
     return direction
 
+def coupler_Fabryperot_covered(direction, side, cpw_thz, cpw_fp, param_1, param_2, cover_length):
+    """
+    side == 'fp' or 'thz' # selects which side of the coupler the starting position is located
+    param_1 and param_2 correspond to p1 and p2 in Nuris coupler in the sonnet file, with p2 being the driving factor to change Qc
+    param_1 == length of broad coupler part
+    param_2 == starting distance of fp_line from end of taper
+    """
+    l_taper = np.sqrt(3)*(1.5*cpw_fp.line + 1)
+    w_taper = 3*cpw_fp.line + 2*2
+    s_taper = cpw_thz.gap
+    l1 = cover_length
+    l2 = cpw_fp.coverextension
+    e1 = cpw_fp.coverextension
+
+#    rot(direction)
+
+    if side == 'thz':
+        layername(cpw_fp.coverlayer)
+        base.wire(-direction, l1, w_taper + 2*s_taper + 2*e1)
+        base.wire(direction, l_taper + param_1 + l2, w_taper + 2*s_taper + 2*e1)
+        cpw_thz.tapergo(direction, l_taper, w_taper, s_taper)
+        try:
+            layername(cpw_thz.gndlayer)
+        except:
+            pass
+        base.cpw(direction, param_1, w_taper, s_taper)
+        movedirection(direction, param_2)
+#        go(param_2, 0)
+    elif side == 'fp':
+        movedirection(direction,param_2 + l_taper)
+        layername(cpw_fp.coverlayer)
+        base.wire(direction, l1, w_taper + 2*s_taper + 2*e1)
+        base.wire(-direction, l_taper + param_1 + l2, w_taper + 2*s_taper + 2*e1)
+        cpw_thz.tapergo(-direction, l_taper, w_taper, s_taper)
+        try:
+            layername(cpw_thz.gndlayer)
+        except:
+            pass
+        base.cpw(-direction, param_1, w_taper, s_taper)
+        movedirection(direction,l_taper)
+    else:
+        print 'WARNING: INVALID SIDE'
+#    rot(np.conjugate(direction))
+    return direction
+
+def coupler_Fabryperot_ms_cpw(direction,side,ms,width_overlap,l_overlap):
+    ms_coupler = ms.copy(line=width_overlap)
+    if side == 'thz':
+        ms_coupler.wirego(-direction,l_overlap)
+        ms_coupler.end_open(0)
+        movedirection(direction,l_overlap)
+        ms_coupler.end_open(direction)
+    elif side == 'fp':
+        ms_coupler.wire(direction,l_overlap)
+        ms_coupler.end_open(0)
+        movedirection(-direction,l_overlap)
+        ms_coupler.end_open(-direction)
+    else:
+        print 'Warning: INVALID SIDE'
+    return direction
+
 def coupler_Fabryperot_gap(direction, side, gap_length):
     rot(direction)
     go(gap_length, 0)

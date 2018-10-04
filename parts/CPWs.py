@@ -56,8 +56,12 @@ class CPW(object):
         return CPWcovered(self.line, self.gap, self.mesh, self.R, self.gndlayer, coverlayer, coverwidth)
 
     def taper(self, direction, L, newline, newgap):
+        """
+        info
+        """
         if direction == None or direction == 0:
             direction = self.direction
+        layername(self.gndlayer)
         xy1 = np.array([[0, 0, L, L], [self.line/2., self.wTotal/2., newgap + newline/2., newline/2.]])
         rot(direction)
         poly(xy1)
@@ -81,10 +85,10 @@ class CPW(object):
         if direction == None or direction == 0:
             direction = self.direction
         # set correct layername, but only if really set
-        try:
-            layername(self.gndlayer)
-        except:
-            pass
+#        try:
+        layername(self.gndlayer)
+#        except:
+#            pass
         wire(direction, float(L), self.gap, (0,(self.line+self.gap)/2.))
         wire(direction, float(L), self.gap, (0,-(self.line+self.gap)/2.))
         return direction
@@ -201,12 +205,14 @@ class CPW(object):
 
 
     def connect(self, connection, *args, **kwargs):
+        print "connecting", connection.mark
         distance = base.dist2markSigned(connection.mark)
         direction_in = np.array([self.direction.real, self.direction.imag])
         direction_out = np.array([connection.direction.real, connection.direction.imag])
         dir_in = self.direction
         self.used_wires = []
         if self.direction == connection.direction:
+            print 'c1'
             ### Same direction
             l_1 = np.dot(direction_in, distance)
             l_2 = np.dot(direction_in[::-1], distance)
@@ -238,6 +244,7 @@ class CPW(object):
                 self.wirego(0, abs(l_1) - 2*self.R)
 
         elif self.direction == -connection.direction:
+            print 'c2'
             ### Opposite direction (needs u-turn)
             l_1 = np.dot(direction_in, distance)
             l_2 = np.dot(direction_in[::-1], distance)
@@ -255,14 +262,18 @@ class CPW(object):
             else:
                 print "WARNING: INPUT AND OUTPUT CONNECTION TO INCOMPATIBLE FOR AUTOCONNECT"
         else:
+            print 'c3'
             ### 90 degree connection
             l_1 =  np.dot(direction_in, distance)
             l_2 =  np.dot(direction_out, distance)
+            print l_1, l_2, self.R, self.direction, connection.direction
             if np.sign(l_1) >= 0:
+                print 'c31'
                 self.wirego(0, np.abs(l_1)-self.R)
                 self.turngo(0, connection.direction)
                 self.wirego(0, np.abs(l_2) - self.R)
             else:
+                print 'c32'
                 self.turngo(dir_in, connection.direction)
                 self.turngo(0, -dir_in)
                 self.wirego(0, np.abs(l_1) - self.R)
@@ -466,10 +477,13 @@ class CPWreadout(CPWwithBridge):
 #            R = self.R
 
 class CPWcovered(CPW):
-    def __init__(self, line, gap, mesh, R, gndlayer, coverlayer, coverwidth):
+    def __init__(self, line, gap, mesh, R, gndlayer, coverlayer, coverextension):
         CPW.__init__(self, line, gap, mesh, R, gndlayer)
         self.coverlayer = coverlayer
-        self.coverwidth = coverwidth
+        self.coverextension = coverextension
+        self.coverwidth = self.line + 2*self.slot + 2*coverextension
+
+
 
     def wire(self, direction, L, *args, **kwargs):
         self.process_direction(direction)

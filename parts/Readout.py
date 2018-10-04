@@ -263,6 +263,9 @@ class couplerDeshima(object):
 #                self.cpw_ro.wirego(0, self.l_out_min)
                 self.cpw_ro.turngo(0, perp_vector[0] + 1j*perp_vector[1])
                 self.draw(self.cpw_ro.direction, kid_connection.direction, kid_connection.mark, l_coupler, l_out, side, debug)
+            else:
+                self.cpw_ro.turngo(0, perp_vector[0] + 1j*perp_vector[1])
+                self.draw(self.cpw_ro.direction, kid_connection.direction, kid_connection.mark, l_coupler, l_out, side, debug)
         self.cpw_coupler = temp_coupler
         self.d_coupler = temp_d_coupler
 

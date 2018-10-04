@@ -118,10 +118,10 @@ def kidM4001membrane(direction, kid, hybrid, wide, lShort, funcTransHybridWide, 
     setmark('KIDend%d' % kid.index)
 
 class KID_mask(object):
-    def __init__(self, shape = 'straight', short_length = 10):
+    def __init__(self,shape = 'straight', short_length = 10, coupler = None):
         self.shape = shape
         self.short_length = short_length
-
+        self.coupler = coupler
         self.kidids = []
         self.connections_coupler = {}
         self.connections_short = {}
@@ -322,9 +322,12 @@ class KID_MS_pure(KID_mask):
             self.line_ms.end_short(direction, 10)
         self.line_ms.wirego(direction, l_kid)
         # Go to starting point of elbow, check where the 0 is really defined
-        base.movedirection(-direction, self.line_coupler.line/2.)
+        base.movedirection(direction, self.line_coupler.line/2.)
+        base.movedirection(direction*(-1j), self.line_ms.line/2.)
+        self.line_coupler.end_open(self.line_ms.direction*(-1j))
         self.line_coupler.wirego(self.line_ms.direction*1j, l_coupler + self.line_coupler.line/2.)
+        self.line_coupler.end_open(0)
 
 #        print "WARNING: COUPLER NOT FULLY IMPLEMENTED"
-        self.connections_coupler[kid_id] = base.connector(-self.line_ms.direction, 'KID_coupler_%d' % kid_id)
+        self.connections_coupler[kid_id] = base.connector(self.line_coupler.direction, 'KID_coupler_%d' % kid_id)
         setmark('KID_coupler_%d' % kid_id)

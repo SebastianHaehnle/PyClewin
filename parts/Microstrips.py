@@ -21,6 +21,7 @@ class Microstrip(object):
     '''
     def __init__(self, line, dielextension, linelayer, diellayer, mesh):
         self.line = line
+        self.dielextension = dielextension
         self.dielwidth = 2*dielextension+self.line
         self.linelayer = linelayer
         self.diellayer = diellayer
@@ -28,8 +29,13 @@ class Microstrip(object):
         self.tm_type = 'ms'
         self.direction = 1
 
-    def generate_protected(self):
-        pass
+
+    def process_direction(self, direction):
+        if direction == None or direction == 0:
+            direction = self.direction
+        else:
+            self.direction = direction
+        return direction
 
     def taper(self, direction, L, newline):
         '''
@@ -115,8 +121,9 @@ class Microstrip(object):
         rotback()
 
     def end_open(self, direction, dielectric_length = -1):
+        direction = self.process_direction(direction)
         if dielectric_length == -1 :
-            dielectric_length = self.dielwidth
+            dielectric_length = self.dielextension
         layername(self.diellayer)
         wire(direction, dielectric_length, self.dielwidth)
         return direction
@@ -126,14 +133,17 @@ class Microstrip(object):
         wire(direction, short_length, self.line)
         return direction
 
+
+
 class Microstrip_protected(Microstrip):
-    def __init__(self, line, dielwidth, linelayer, diellayer, mesh, coverlayer, coverextension):
+    def __init__(self, line, dielextension, linelayer, diellayer, mesh, coverlayer, coverextension):
         """
         This is a class for a microstrip line with a protective layer to avoid etching into surrounding nbtin_gnd.
         WARNING: NOT ALL MICROSTRIP FUNCTIONS HAVE BEEN OVERWRITTEN WITH COVERLAYER
         """
-        super(Microstrip_protected, self).__init__(line, dielwidth, linelayer, diellayer, mesh)
+        super(Microstrip_protected, self).__init__(line, dielextension, linelayer, diellayer, mesh)
         self.coverlayer = coverlayer
+        self.coverextension = coverextension
         self.coverwidth = 2*coverextension + self.line
 
     def wire(self, direction, L, **kwargs):
@@ -143,11 +153,19 @@ class Microstrip_protected(Microstrip):
         return direction
 
     def end_open(self, direction, dielectric_length = -1):
+        direction = self.process_direction(direction)
         if dielectric_length == -1:
-            dielectric_length = self.dielwidth
+            dielectric_length = self.dielextension
         layername(self.coverlayer)
-        wire(direction, dielectric_length/2., self.coverwidth)
+        wire(direction, self.coverextension, self.coverwidth)
         super(Microstrip_protected, self).end_open(direction, dielectric_length)
+
+    def copy(self, **kwargs):
+        """
+        WARNING: NOT FULLY IMPLEMENTED
+        """
+        line = kwargs.pop('line' , self.line)
+        return Microstrip_protected(line, self.dielextension, self.linelayer, self.diellayer, self.mesh, self.coverlayer, self.coverextension)
 
 
 class Microstrip3layer(Microstrip):
