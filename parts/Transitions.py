@@ -163,13 +163,15 @@ def coupler_Fabryperot_covered(direction, side, cpw_thz, cpw_fp, param_1, param_
     l1 = cover_length
     l2 = cpw_fp.coverextension
     e1 = cpw_fp.coverextension
+    e2 = cpw_fp.coverwidth
 
+#    old w_taper + 2*s_taper + 2*e1
 #    rot(direction)
 
     if side == 'thz':
         layername(cpw_fp.coverlayer)
-        base.wire(-direction, l1, w_taper + 2*s_taper + 2*e1)
-        base.wire(direction, l_taper + param_1 + l2, w_taper + 2*s_taper + 2*e1)
+        base.wire(-direction, l1, e2)
+        base.wire(direction, l_taper + param_1 + l2, e2)
         cpw_thz.tapergo(direction, l_taper, w_taper, s_taper)
         try:
             layername(cpw_thz.gndlayer)
@@ -181,8 +183,8 @@ def coupler_Fabryperot_covered(direction, side, cpw_thz, cpw_fp, param_1, param_
     elif side == 'fp':
         movedirection(direction,param_2 + l_taper)
         layername(cpw_fp.coverlayer)
-        base.wire(direction, l1, w_taper + 2*s_taper + 2*e1)
-        base.wire(-direction, l_taper + param_1 + l2, w_taper + 2*s_taper + 2*e1)
+        base.wire(direction, l1, e2)
+        base.wire(-direction, l_taper + param_1 + l2, e2)
         cpw_thz.tapergo(-direction, l_taper, w_taper, s_taper)
         try:
             layername(cpw_thz.gndlayer)
@@ -196,17 +198,22 @@ def coupler_Fabryperot_covered(direction, side, cpw_thz, cpw_fp, param_1, param_
     return direction
 
 def coupler_Fabryperot_ms_cpw(direction,side,ms,width_overlap,l_overlap):
-    ms_coupler = ms.copy(line=width_overlap)
+    line_w = 2 
+    ms_coupler = ms.coupler(line_w,width_overlap)
     if side == 'thz':
         ms_coupler.wirego(-direction,l_overlap)
         ms_coupler.end_open(0)
         movedirection(direction,l_overlap)
+        ms_coupler.wirego(direction,1)
         ms_coupler.end_open(direction)
+        movedirection(-direction,1)
     elif side == 'fp':
-        ms_coupler.wire(direction,l_overlap)
+        ms_coupler.wirego(direction,l_overlap)
         ms_coupler.end_open(0)
         movedirection(-direction,l_overlap)
+        ms_coupler.wirego(-direction,1)
         ms_coupler.end_open(-direction)
+        movedirection(direction,1)
     else:
         print 'Warning: INVALID SIDE'
     return direction
@@ -216,4 +223,5 @@ def coupler_Fabryperot_gap(direction, side, gap_length):
     go(gap_length, 0)
     rot(np.conjugate(direction))
     return direction
+
 

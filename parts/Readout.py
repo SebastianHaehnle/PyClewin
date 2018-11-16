@@ -83,6 +83,10 @@ def bondpad_100nm_Si(direction, rocpw, distToEdge):
     cpwgo(1, lbond, wbond, sbond)
     # Add isolation from ground
     wire(1, lisolation, wbond + 2*sbond)
+    # add the alu square here.
+    layername('Aluminum')
+    wire(-1, lbond, wbond)
+    layername(rocpw.diellayer)
     gomark('temp')
 
 

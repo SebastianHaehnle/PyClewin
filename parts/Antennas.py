@@ -131,10 +131,13 @@ class Doubleslot(object):
     def gen_from_Juan(w_cpw, s_cpw, l_cpw, l_stub, W1_ant, W2_ant, d_ant, W_ant, L_ant, layer):
         h_1 = (d_ant - w_cpw - 2*s_cpw)/2.
         h_2 = (L_ant - d_ant - 2*W1_ant)/2
-        w_2 = (W_ant + W1_ant)/2
+        w_2 = (W_ant - W1_ant)
         return Doubleslot(w_cpw, s_cpw, l_cpw, l_stub, W1_ant, W2_ant, h_1, h_2, w_2, layer)
+"""
+ Kevin: Doubleslot.gen_from_Juan(line_cpw, slot_cpw, L_transformer + 4.843 ,L_stub, W1ant, W2ant, dant, Want, Lant, 'Mat_plane')
+"""
 
-doubleSlot_350ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2, 2, 0, 4.615, 7.846, 5.215, 15.692, 73.846, 124.615, 'NbTiN_GND')
+doubleSlot_350ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(3, 2.1857, 4.843+71, 0, 14.571, 9.686, 29.143, 137.143, 235.714, 'NbTiN_GND')
 doubleSlot_650ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2, 2, 0, 4.615, 7.846, 5.215, 15.692, 73.846, 124.615, 'NbTiN_GND')
 doubleSlot_850ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2., 2., 0., 4.235, 6.0, 3.988, 12.0, 56.471, 95.294, 'NbTiN_GND')
 doubleSlot_1100ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2., 2., 0., 6.818, 4.636, 3.082, 9.273, 73.636, 43.636, 'NbTiN_GND')

@@ -128,7 +128,7 @@ class KID_mask(object):
 
 
 class Hybrid(KID_mask):
-    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler,  short_length = 10, shape = 'straight',  SiN_patchtype = 'full', SiN_layer = 'SiN_wafer', SiN_size = [20, 100]):
+    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler,  short_length = 10, shape = 'straight',  SiN_patchtype = 'full', SiN_layer = 'SiN_wafer', SiN_size = [6, 100]):
         """
         This instance defines the general KID structure to be used (hybrid cpw, wide cpw, coupler cpw).
         Use draw() method to write individual KIDs with defined section lengths.
@@ -210,7 +210,7 @@ class Hybrid(KID_mask):
         base.layername(self.line_hybrid.gndlayer)
 
 class Hybrid_Fabryperot(Hybrid):
-    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer = 'SiN_wafer', SiN_size = [20, 100]):
+    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer = 'SiN_wafer', SiN_size = [6, 100]):
         Hybrid.__init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler,
                      SiN_layer = SiN_layer, SiN_size = SiN_size,
                      SiN_patchtype = 'full', shape = 'straight', short_length = 0)
@@ -269,7 +269,7 @@ class KID_NBTIN(KID_mask):
         setmark('KID_coupler_%d' % kid_id)
 
 class KID_COUPLED_BROADBAND(Hybrid_Fabryperot):
-    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer = 'SiN_wafer', SiN_size = [20, 100]):
+    def __init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer = 'SiN_wafer', SiN_size = [6, 100]):
         Hybrid_Fabryperot.__init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer, SiN_size)
         self.type = 'broadband'
 

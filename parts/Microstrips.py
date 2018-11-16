@@ -167,6 +167,15 @@ class Microstrip_protected(Microstrip):
         line = kwargs.pop('line' , self.line)
         return Microstrip_protected(line, self.dielextension, self.linelayer, self.diellayer, self.mesh, self.coverlayer, self.coverextension)
 
+    def coupler(self, line_old, width_overlap):
+        """
+        WARNING: TRAIL AND ERROR BY KEVIN
+        """
+        
+        diff_line = (width_overlap-line_old)/2
+        die_ext = self.dielextension - diff_line
+        cover_ext = self.coverextension - diff_line
+        return Microstrip_protected(width_overlap, die_ext, self.linelayer, self.diellayer, self.mesh, self.coverlayer, cover_ext)
 
 class Microstrip3layer(Microstrip):
     '''
