@@ -19,7 +19,7 @@ class Microstrip(object):
         diellayer   :: diel layer
         mesh        :: polygon resolution for corners
     '''
-    def __init__(self, line, dielextension, linelayer, diellayer, mesh):
+    def __init__(self, line, dielextension, linelayer, diellayer, mesh, R=0):
         self.line = line
         self.dielextension = dielextension
         self.dielwidth = 2*dielextension+self.line
@@ -28,6 +28,7 @@ class Microstrip(object):
         self.mesh = mesh
         self.tm_type = 'ms'
         self.direction = 1
+        self.R = R
 
 
     def process_direction(self, direction):
@@ -56,14 +57,15 @@ class Microstrip(object):
         return direction
 
     def wire(self, direction, L):
+        direction = self.process_direction(direction)
         layername(self.linelayer)
         wire(direction, L, self.line)
         layername(self.diellayer)
         wire(direction, L, self.dielwidth)
-        self.direction = direction
         return direction
 
     def wirego(self, direction, L, **kwargs):
+        direction = self.process_direction(direction)
         self.wire(direction, L, **kwargs)
         rot(direction)
         go(L, 0)
@@ -71,28 +73,40 @@ class Microstrip(object):
         return direction
 
     def up(self, direction, R):
+        if R == -1:
+            R = self.R
         layername(self.linelayer)
         turnup(direction, R, self.line, self.mesh)
         layername(self.diellayer)
         turnup(direction, R, self.dielwidth, self.mesh)
 
     def upgo(self, direction, R, **kwargs):
+        if R == -1:
+            R = self.R
+        direction = self.process_direction(direction)
         self.up(direction, R, **kwargs)
         rot(direction)
         go(R, R)
         rotback()
+        return direction
 
     def down(self, direction, R):
+        if R == -1:
+            R = self.R
         layername(self.linelayer)
         turndown(direction, R, self.line, self.mesh)
         layername(self.diellayer)
         turndown(direction, R, self.dielwidth, self.mesh)
 
     def downgo(self, direction, R, **kwargs):
+        if R == -1:
+            R = self.R
+        direction = self.process_direction(direction)
         self.down(direction, R, **kwargs)
         rot(direction)
         go(R, -R)
         rotback()
+        return direction
 
     def up45(self, direction, R):
         layername(self.linelayer)
@@ -120,6 +134,26 @@ class Microstrip(object):
         go((xy45[0][-1]+xy45[0][0])/2., (xy45[1][-1]+xy45[1][0])/2.)
         rotback()
 
+    def turn(self, direction_in, direction_out, R = -1, *args, **kwargs):
+        if base.cornerDirection(direction_in, direction_out) > 0:
+            self.up(direction_in, R, *args, **kwargs)
+        else:
+            self.down(direction_in, R, *args, **kwargs)
+        return direction_in
+
+    def turngo(self, direction_in, direction_out, R = -1, *args, **kwargs):
+        if direction_in == None or direction_in == 0:
+            direction_in = self.direction
+        else:
+            self.direction = direction_in
+        if base.cornerDirection(direction_in, direction_out) > 0:
+            self.upgo(direction_in, R, *args, **kwargs)
+        else:
+            self.downgo(direction_in, R, *args, **kwargs)
+        self.direction = direction_out
+#        self.used_wires.append([direction_out, self.R, direction_in])
+        return direction_out
+
     def end_open(self, direction, dielectric_length = -1):
         direction = self.process_direction(direction)
         if dielectric_length == -1 :
@@ -136,17 +170,18 @@ class Microstrip(object):
 
 
 class Microstrip_protected(Microstrip):
-    def __init__(self, line, dielextension, linelayer, diellayer, mesh, coverlayer, coverextension):
+    def __init__(self, line, dielextension, linelayer, diellayer, mesh, coverlayer, coverextension, R = 0):
         """
         This is a class for a microstrip line with a protective layer to avoid etching into surrounding nbtin_gnd.
         WARNING: NOT ALL MICROSTRIP FUNCTIONS HAVE BEEN OVERWRITTEN WITH COVERLAYER
         """
-        super(Microstrip_protected, self).__init__(line, dielextension, linelayer, diellayer, mesh)
+        super(Microstrip_protected, self).__init__(line, dielextension, linelayer, diellayer, mesh, R = R)
         self.coverlayer = coverlayer
         self.coverextension = coverextension
         self.coverwidth = 2*coverextension + self.line
 
     def wire(self, direction, L, **kwargs):
+        direction = self.process_direction(direction)
         layername(self.coverlayer)
         wire(direction, L, self.coverwidth)
         super(Microstrip_protected, self).wire(direction, L, **kwargs)
