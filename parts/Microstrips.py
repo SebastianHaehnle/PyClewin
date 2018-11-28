@@ -208,9 +208,124 @@ class Microstrip_protected(Microstrip):
         """
         
         diff_line = (width_overlap-line_old)/2
-        die_ext = self.dielextension - diff_line
+        die_ext = self.dielextension - diff_line/10
         cover_ext = self.coverextension - diff_line
         return Microstrip_protected(width_overlap, die_ext, self.linelayer, self.diellayer, self.mesh, self.coverlayer, cover_ext)
+
+class Microstrip_burried(Microstrip):
+    def __init__(self, line, dielextension, widthextension, widthoverlap, linelayer, diellayer, mesh, coverlayer, coverextension, R = 0):
+        """
+        This is a class for a burried microstrip line with an extra section of NbTiN for better adhesion of the aSi layer.
+        WARNING: NOT ALL MICROSTRIP FUNCTIONS HAVE BEEN OVERWRITTEN WITH COVERLAYER
+        """
+        super(Microstrip_burried, self).__init__(line, dielextension, linelayer, diellayer, mesh, R = R)
+        self.widthoverlap = widthoverlap
+        self.widthextension = widthextension
+        self.coverlayer = coverlayer
+        self.coverextension = coverextension
+        self.coverwidth = 2*coverextension + self.line
+        self.jumpdistance = dielextension + widthextension - widthoverlap/2 + self.line/2
+
+    def wire(self, direction, L, **kwargs):
+        direction = self.process_direction(direction)
+        #layername(self.coverlayer)
+        #wire(direction, L, self.coverwidth)
+        layername(self.linelayer)
+        movedirection(1j*direction,self.jumpdistance)
+        wire(direction, L, self.widthoverlap)
+        movedirection(-1j*direction,self.jumpdistance*2,)
+        wire(direction, L, self.widthoverlap)
+        movedirection(1j*direction,self.jumpdistance)
+        super(Microstrip_burried, self).wire(direction, L, **kwargs)
+        return direction
+    
+    def up(self, direction, R):
+        if R == -1:
+            R = self.R
+        layername(self.linelayer)
+        turnup(direction, R, self.line, self.mesh)
+        layername(self.diellayer)
+        wire(direction, R+self.dielextension+self.line/2,self.dielwidth)
+        setmark('up_start')
+        movedirection(direction*-1j,self.jumpdistance)
+        layername(self.linelayer)
+        wirego(direction, R+self.dielextension+self.line/2+self.widthextension,self.widthoverlap)
+        movedirection(-direction, self.widthoverlap/2)
+        wirego(direction*1j, R+self.dielextension+self.line/2+self.widthextension,self.widthoverlap)
+        gomark('up_start')
+        
+    def down(self, direction, R):
+        if R == -1:
+            R = self.R
+        layername(self.linelayer)
+        turndown(direction, R, self.line, self.mesh)
+        layername(self.diellayer)
+        wire(direction, R+self.dielextension+self.line/2,self.dielwidth)
+        setmark('down_start')
+        movedirection(direction*1j,self.jumpdistance)
+        layername(self.linelayer)
+        wirego(direction, R+self.dielextension+self.line/2+self.widthextension,self.widthoverlap)
+        movedirection(-direction, self.widthoverlap/2)
+        wirego(direction*-1j, R+self.dielextension+self.line/2+self.widthextension,self.widthoverlap)
+        gomark('down_start')
+        
+
+    def end_open(self, direction, dielectric_length = -1):
+        direction = self.process_direction(direction)
+        if dielectric_length == -1:
+            dielectric_length = self.dielextension
+        super(Microstrip_burried, self).end_open(direction, self.coverextension)
+
+    def copy(self, **kwargs):
+        """
+        WARNING: NOT FULLY IMPLEMENTED
+        """
+        line = kwargs.pop('line' , self.line)
+        return Microstrip_burried(line, self.dielextension, self.widthextension, self.widthoverlap, self.linelayer, self.diellayer, self.mesh, self.coverlayer, self.coverextension)
+
+    def coupler(self, line_old, width_overlap):
+        """
+        WARNING: TRAIL AND ERROR BY KEVIN
+        """
+        
+        diff_line = (width_overlap-line_old)/2
+        die_ext = (self.dielextension - diff_line)
+        cover_ext = self.coverextension - diff_line
+        return Microstrip_burried(width_overlap, die_ext, self.widthextension, self.widthoverlap, self.linelayer, self.diellayer, self.mesh, self.coverlayer, cover_ext)
+    
+    
+class Microstrip_burried_KID(Microstrip):
+    def __init__(self, line, dielextension, widthextension, widthoverlap, linelayer, diellayer, mesh, coverlayer, coverextension, R = 0):
+        """
+        This is a class for a burried microstrip line with an extra section of NbTiN for better adhesion of the aSi layer.
+        WARNING: NOT ALL MICROSTRIP FUNCTIONS HAVE BEEN OVERWRITTEN WITH COVERLAYER
+        """
+        super(Microstrip_burried_KID, self).__init__(line, dielextension, linelayer, diellayer, mesh, R = R)
+        self.widthoverlap = widthoverlap
+        self.widthextension = widthextension
+        self.coverlayer = coverlayer
+        self.coverextension = coverextension
+        self.coverwidth = 2*coverextension + self.line
+        self.jumpdistance = dielextension + widthextension - widthoverlap/2 + self.line/2    
+        
+    def wire(self, direction, L, **kwargs):
+        direction = self.process_direction(direction)
+        #layername(self.coverlayer)
+        #wire(direction, L, self.coverwidth)
+        setmark('MS_KID_ad')
+        layername(self.linelayer)
+        movedirection(-1j*direction,self.jumpdistance)
+        movedirection(-1*direction,self.dielextension+self.widthoverlap/2)
+        wire(direction, L + 2*self.dielextension+self.widthoverlap, self.widthoverlap)
+        gomark('MS_KID_ad')
+        super(Microstrip_burried_KID, self).wire(direction, L, **kwargs)
+        return direction
+    
+    def end_open(self, direction, dielectric_length = -1):
+        direction = self.process_direction(direction)
+        if dielectric_length == -1:
+            dielectric_length = self.dielextension
+        super(Microstrip_burried_KID, self).end_open(direction, dielectric_length)
 
 class Microstrip3layer(Microstrip):
     '''

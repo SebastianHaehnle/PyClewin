@@ -54,6 +54,9 @@ class CPW(object):
 
     def generate_covered(self, coverlayer, coverwidth):
         return CPWcovered(self.line, self.gap, self.mesh, self.R, self.gndlayer, coverlayer, coverwidth)
+    
+    def generate_asi(self,coverlayer, coverwidth, extensionlayer ,widthextension, widthoverlap):
+        return CPW_asi(self.line, self.gap, self.mesh, self.R, self.gndlayer, coverlayer, coverwidth, extensionlayer ,widthextension, widthoverlap)
 
     def taper(self, direction, L, newline, newgap):
         """
@@ -510,7 +513,49 @@ class CPWcovered(CPW):
         super(CPWcovered, self).down(direction, R, *args, **kwargs)
         return direction
 
+class CPW_asi(CPW):
+    def __init__(self, line, gap, mesh, R, gndlayer, coverlayer, coverextension, extensionlayer, widthextension, widthoverlap):
+        CPW.__init__(self, line, gap, mesh, R, gndlayer)
+        self.widthoverlap = widthoverlap
+        self.widthextension = widthextension
+        self.coverlayer = coverlayer
+        self.extensionlayer = extensionlayer
+        self.coverextension = coverextension
+        self.coverwidth = self.line + 2*self.slot + 2*coverextension
+        self.jumpdistance = coverextension + widthextension - widthoverlap/2 + (self.line + 2*self.slot)/2   
 
+
+
+    def wire(self, direction, L, *args, **kwargs):
+        self.process_direction(direction)
+        layername(self.coverlayer)
+        wire(direction, L, self.coverwidth)
+        layername(self.extensionlayer)
+        movedirection(1j*direction,self.jumpdistance)
+        wire(direction, L, self.widthoverlap)
+        movedirection(-1j*direction,self.jumpdistance*2,)
+        wire(direction, L, self.widthoverlap)
+        movedirection(1j*direction,self.jumpdistance)
+        super(CPW_asi, self).wire(direction, L, *args, **kwargs)
+        return direction
+
+    def up(self, direction, R = -1, *args, **kwargs):
+        self.process_direction(direction)
+        if R == -1:
+            R = self.R
+        layername(self.coverlayer)
+        wire(direction, R + self.coverwidth, self.coverwidth)
+        super(CPW_asi, self).up(direction, R, *args, **kwargs)
+        return direction
+
+    def down(self, direction, R = -1, *args, **kwargs):
+        self.process_direction(direction)
+        if R == -1:
+            R = self.R
+        layername(self.coverlayer)
+        wire(direction, R + self.coverwidth, self.coverwidth)
+        super(CPW_asi, self).down(direction, R, *args, **kwargs)
+        return direction
 
 
 

@@ -305,10 +305,11 @@ class KID_COUPLED_BROADBAND(Hybrid_Fabryperot):
         self.draw_SiN(*self.SiN_size)
 
 class KID_MS_pure(KID_mask):
-    def __init__(self, line_ms, line_coupler, shape = 'straight', short_length = -1):
+    def __init__(self, line_ms,line_ms_clean, line_coupler, shape = 'straight', short_length = -1):
         KID_mask.__init__(self, shape = shape, short_length = short_length)
         self.type = 'ms'
         self.line_ms = line_ms
+        self.line_ms_clean = line_ms_clean
         self.line_coupler = line_coupler
 
     def draw(self, direction, l_kid, l_coupler, kid_id, coupler_included = True, start = 'short'):
@@ -320,13 +321,16 @@ class KID_MS_pure(KID_mask):
             self.line_ms.end_open(-direction, 10)
         else:
             self.line_ms.end_short(direction, 10)
-        self.line_ms.wirego(direction, l_kid)
+        self.line_ms.wirego(direction, l_kid - self.line_coupler.dielextension)
+        self.line_ms_clean.wirego(direction, self.line_coupler.dielextension)    
+        """ NOTE THIS SECTION WAS MODIFIED TO MAKE SURE THE EXTRA NBTIN SECTION FOR THE ASI COVERED STRIP WOULD NOT RUN UNTO THE READOUT LINE """
         # Go to starting point of elbow, check where the 0 is really defined
         base.movedirection(direction, self.line_coupler.line/2.)
         base.movedirection(direction*(-1j), self.line_ms.line/2.)
         self.line_coupler.end_open(self.line_ms.direction*(-1j))
         self.line_coupler.wirego(self.line_ms.direction*1j, l_coupler + self.line_coupler.line/2.)
         self.line_coupler.end_open(0)
+        
 
 #        print "WARNING: COUPLER NOT FULLY IMPLEMENTED"
         self.connections_coupler[kid_id] = base.connector(self.line_coupler.direction, 'KID_coupler_%d' % kid_id)
