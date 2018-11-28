@@ -150,7 +150,7 @@ class Hybrid(KID_mask):
 
 
 
-    def draw(self, direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included = True, start = 'short'):
+    def draw(self, direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included = True, coupler_type = 'default', start = 'short'):
         """
         Draws KID with structure as defined by self instance at current point.
         L_tot = l_hybrid + l_wide + l_coupler
@@ -218,7 +218,7 @@ class Hybrid_Fabryperot(Hybrid):
         self.line_thz = line_thz
         self.transition_thz = transition_thz
 
-    def draw(self, direction, l_hybrid, l_wide, l_coupler, l_thz, kid_id, coupler_included = True, start = 'short'):
+    def draw(self, direction, l_hybrid, l_wide, l_coupler, l_thz, kid_id, coupler_included = True, coupler_type = 'default', start = 'short'):
         setmark('kidlevel_fp')
         # Draw thz line and transition to aluminum first
         self.line_thz.wirego(direction, l_thz)
@@ -234,7 +234,7 @@ class KID_NBTIN(KID_mask):
         self.transition_coupler = transition_coupler
 
 
-    def draw(self, direction, l_wide, l_coupler, kid_id, coupler_included = True, start = 'short'):
+    def draw(self, direction, l_wide, l_coupler, kid_id, coupler_included = True, coupler_type = 'default',start = 'short'):
         if coupler_included:
             l_wide = l_wide - l_coupler
         self.kidids.append(kid_id)
@@ -273,7 +273,7 @@ class KID_COUPLED_BROADBAND(Hybrid_Fabryperot):
         Hybrid_Fabryperot.__init__(self, line_hybrid, line_wide, line_coupler, transition_hybrid, transition_coupler, line_thz, transition_thz, SiN_layer, SiN_size)
         self.type = 'broadband'
 
-    def draw(self, direction_thz, direction_kid, l_hybrid, l_wide, l_coupler, l_thz, kid_id, coupler_included = True, start = 'short'):
+    def draw(self, direction_thz, direction_kid, l_hybrid, l_wide, l_coupler, l_thz, kid_id, coupler_included = True, coupler_type = 'default', start = 'short'):
         if coupler_included:
             l_wide = l_wide - l_coupler
         self.kidids.append(kid_id)
@@ -348,6 +348,8 @@ class KID_MS_pure(KID_mask):
                 # move back to center of readout line
                 base.movedirection(-direction, self.line_ms.jumpdistance + self.line_readout.line/2. + self.line_readout.gap)
             self.connections_coupler[kid_id] = base.connector(direction*1j, 'KID_coupler_%d' % kid_id)
+        else:
+            sys.exit('coupler type not defined in KID_MS_PURE')
 
 
 
