@@ -305,14 +305,15 @@ class KID_COUPLED_BROADBAND(Hybrid_Fabryperot):
         self.draw_SiN(*self.SiN_size)
 
 class KID_MS_pure(KID_mask):
-    def __init__(self, line_ms,line_ms_clean, line_coupler, shape = 'straight', short_length = -1):
+    def __init__(self, line_ms,line_ms_clean, line_coupler, line_readout = None, shape = 'straight', short_length = -1):
         KID_mask.__init__(self, shape = shape, short_length = short_length)
         self.type = 'ms'
         self.line_ms = line_ms
         self.line_ms_clean = line_ms_clean
         self.line_coupler = line_coupler
+        self.line_readout = line_readout
 
-    def draw(self, direction, l_kid, l_coupler, kid_id, coupler_included = True, start = 'short'):
+    def draw(self, direction, l_kid, l_coupler, kid_id, coupler_included = True, coupler_type = 'elbow', start = 'short'):
         if coupler_included:
             l_kid = l_kid - l_coupler
         self.kidids.append(kid_id)
@@ -322,16 +323,36 @@ class KID_MS_pure(KID_mask):
         else:
             self.line_ms.end_short(direction, 10)
         self.line_ms.wirego(direction, l_kid - self.line_coupler.dielextension)
-        self.line_ms_clean.wirego(direction, self.line_coupler.dielextension)    
+        self.line_ms_clean.wirego(direction, self.line_coupler.dielextension)
         """ NOTE THIS SECTION WAS MODIFIED TO MAKE SURE THE EXTRA NBTIN SECTION FOR THE ASI COVERED STRIP WOULD NOT RUN UNTO THE READOUT LINE """
-        # Go to starting point of elbow, check where the 0 is really defined
-        base.movedirection(direction, self.line_coupler.line/2.)
-        base.movedirection(direction*(-1j), self.line_ms.line/2.)
-        self.line_coupler.end_open(self.line_ms.direction*(-1j))
-        self.line_coupler.wirego(self.line_ms.direction*1j, l_coupler + self.line_coupler.line/2.)
-        self.line_coupler.end_open(0)
-        
+        if coupler_type == 'elbow':
+            # Go to starting point of elbow, check where the 0 is really defined
+            base.movedirection(direction, self.line_coupler.line/2.)
+            base.movedirection(direction*(-1j), self.line_ms.line/2.)
+
+            self.line_coupler.end_open(self.line_ms.direction*(-1j))
+            self.line_coupler.wirego(self.line_ms.direction*1j, l_coupler + self.line_coupler.line/2.)
+            self.line_coupler.end_open(0)
+            self.connections_coupler[kid_id] = base.connector(self.line_coupler.direction, 'KID_coupler_%d' % kid_id)
+        elif coupler_type == 'overlap':
+            if l_coupler <= self.line_readout.gap/2.:
+                sys.exit('Readout coupler not long enough for KID_MS_Pure and \'overlap\' coupler type.')
+            self.line_ms_clean.wirego(0, l_coupler)
+            l_open_modifier = self.line_readout.line + self.line_readout.gap*1.5-l_coupler
+            # add dielectric extension of appropriate length over readout line
+            self.line_ms_clean.end_open(0, self.line_ms_clean.dielextension + self.line_readout.line + self.line_readout.gap*1.5-l_coupler)
+            if 'buried' in self.line_ms.type:
+                # Add metal slab for cohesion
+                base.movedirection(direction, self.line_ms.jumpdistance + l_open_modifier)
+                base.bar(direction*1j, self.line_ms.dielwidth + 2*self.line_ms.widthextension, self.line_ms.widthoverlap)
+                # move back to center of readout line
+                base.movedirection(-direction, self.line_ms.jumpdistance + self.line_readout.line/2. + self.line_readout.gap)
+            self.connections_coupler[kid_id] = base.connector(direction*1j, 'KID_coupler_%d' % kid_id)
+
+
+
+
 
 #        print "WARNING: COUPLER NOT FULLY IMPLEMENTED"
-        self.connections_coupler[kid_id] = base.connector(self.line_coupler.direction, 'KID_coupler_%d' % kid_id)
+
         setmark('KID_coupler_%d' % kid_id)

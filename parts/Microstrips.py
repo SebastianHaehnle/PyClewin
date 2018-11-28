@@ -20,6 +20,7 @@ class Microstrip(object):
         mesh        :: polygon resolution for corners
     '''
     def __init__(self, line, dielextension, linelayer, diellayer, mesh, R=0):
+        self.type = 'microstrip'
         self.line = line
         self.dielextension = dielextension
         self.dielwidth = 2*dielextension+self.line
@@ -176,6 +177,7 @@ class Microstrip_protected(Microstrip):
         WARNING: NOT ALL MICROSTRIP FUNCTIONS HAVE BEEN OVERWRITTEN WITH COVERLAYER
         """
         super(Microstrip_protected, self).__init__(line, dielextension, linelayer, diellayer, mesh, R = R)
+        self.type = 'microstrip protected'
         self.coverlayer = coverlayer
         self.coverextension = coverextension
         self.coverwidth = 2*coverextension + self.line
@@ -206,7 +208,7 @@ class Microstrip_protected(Microstrip):
         """
         WARNING: TRAIL AND ERROR BY KEVIN
         """
-        
+
         diff_line = (width_overlap-line_old)/2
         die_ext = self.dielextension - diff_line/10
         cover_ext = self.coverextension - diff_line
@@ -219,6 +221,7 @@ class Microstrip_burried(Microstrip):
         WARNING: NOT ALL MICROSTRIP FUNCTIONS HAVE BEEN OVERWRITTEN WITH COVERLAYER
         """
         super(Microstrip_burried, self).__init__(line, dielextension, linelayer, diellayer, mesh, R = R)
+        self.type = 'microstrip buried'
         self.widthoverlap = widthoverlap
         self.widthextension = widthextension
         self.coverlayer = coverlayer
@@ -238,7 +241,7 @@ class Microstrip_burried(Microstrip):
         movedirection(1j*direction,self.jumpdistance)
         super(Microstrip_burried, self).wire(direction, L, **kwargs)
         return direction
-    
+
     def up(self, direction, R):
         if R == -1:
             R = self.R
@@ -253,7 +256,7 @@ class Microstrip_burried(Microstrip):
         movedirection(-direction, self.widthoverlap/2)
         wirego(direction*1j, R+self.dielextension+self.line/2+self.widthextension,self.widthoverlap)
         gomark('up_start')
-        
+
     def down(self, direction, R):
         if R == -1:
             R = self.R
@@ -268,7 +271,7 @@ class Microstrip_burried(Microstrip):
         movedirection(-direction, self.widthoverlap/2)
         wirego(direction*-1j, R+self.dielextension+self.line/2+self.widthextension,self.widthoverlap)
         gomark('down_start')
-        
+
 
     def end_open(self, direction, dielectric_length = -1):
         direction = self.process_direction(direction)
@@ -287,13 +290,13 @@ class Microstrip_burried(Microstrip):
         """
         WARNING: TRAIL AND ERROR BY KEVIN
         """
-        
+
         diff_line = (width_overlap-line_old)/2
         die_ext = (self.dielextension - diff_line)
         cover_ext = self.coverextension - diff_line
         return Microstrip_burried(width_overlap, die_ext, self.widthextension, self.widthoverlap, self.linelayer, self.diellayer, self.mesh, self.coverlayer, cover_ext)
-    
-    
+
+
 class Microstrip_burried_KID(Microstrip):
     def __init__(self, line, dielextension, widthextension, widthoverlap, linelayer, diellayer, mesh, coverlayer, coverextension, R = 0):
         """
@@ -301,13 +304,14 @@ class Microstrip_burried_KID(Microstrip):
         WARNING: NOT ALL MICROSTRIP FUNCTIONS HAVE BEEN OVERWRITTEN WITH COVERLAYER
         """
         super(Microstrip_burried_KID, self).__init__(line, dielextension, linelayer, diellayer, mesh, R = R)
+        self.type = 'microstrip buried kid'
         self.widthoverlap = widthoverlap
         self.widthextension = widthextension
         self.coverlayer = coverlayer
         self.coverextension = coverextension
         self.coverwidth = 2*coverextension + self.line
-        self.jumpdistance = dielextension + widthextension - widthoverlap/2 + self.line/2    
-        
+        self.jumpdistance = dielextension + widthextension - widthoverlap/2 + self.line/2
+
     def wire(self, direction, L, **kwargs):
         direction = self.process_direction(direction)
         #layername(self.coverlayer)
@@ -320,7 +324,7 @@ class Microstrip_burried_KID(Microstrip):
         gomark('MS_KID_ad')
         super(Microstrip_burried_KID, self).wire(direction, L, **kwargs)
         return direction
-    
+
     def end_open(self, direction, dielectric_length = -1):
         direction = self.process_direction(direction)
         if dielectric_length == -1:
