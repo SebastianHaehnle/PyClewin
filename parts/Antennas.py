@@ -140,7 +140,7 @@ class Doubleslot(object):
 doubleSlot_350ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(3, 2.1857, 4.843+71, 0, 14.571, 9.686, 29.143, 137.143, 235.714, 'NbTiN_GND')
 doubleSlot_650ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2, 2, 0, 4.615, 7.846, 5.215, 15.692, 73.846, 124.615, 'NbTiN_GND')
 doubleSlot_850ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2., 2., 0., 4.235, 6.0, 3.988, 12.0, 56.471, 95.294, 'NbTiN_GND')
-doubleSlot_1100ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2., 2., 0., 6.818, 4.636, 3.082, 9.273, 73.636, 43.636, 'NbTiN_GND')
+doubleSlot_1100ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2., 2., 0., 6.818, 4.636, 3.082, 9.273, 43.636, 73.636, 'NbTiN_GND')
 
 
 
