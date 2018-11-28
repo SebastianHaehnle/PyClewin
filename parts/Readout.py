@@ -185,13 +185,36 @@ class couplerDeshima(object):
             print "WARNING: STRANGE INPUT FOR DESHIMA COUPLER"
 
         # Define section lengths:
+        # vertical lengths
+        l_3_in = coupler_distance - 1*self.cpw_ro.R # Distance from start to beginning of coupler section
+        l_3_out = l_out or l_3_in
+
         l_1 = self.d_turn - 2*self.cpw_ro.R # bottom length of U in U-turn
         d_lines = (self.cpw_coupler.wTotal+ self.cpw_ro.wTotal)/2. + self.d_coupler # width of U-turn
         if l_1 > 0:
             l_2 = ro_length - l_1 - 3*self.cpw_ro.R - d_lines
         else:
             l_2 = ro_length - 3*self.cpw_ro.R - d_lines # distance from start to entrance of U-turn
+
+        print l_1, l_2, l_3_in, l_3_out
         # Check which side the coupler should attach to in dynamic case
+        if l_3_in < 0:
+            go_low = True
+            print l_2, 2.5*self.d_turn
+            if l_2 < 2.5*self.d_turn:
+                if side == 'dynamic':
+                    side = 'far'
+                    l_2 = l_2 + 2*d_lines  + l_1 + 2*self.cpw_ro.R
+                else:
+                    sys.exit('coupler geometry impossible, check couplerDeshima draw for kidmark %s' % kidmark)
+            l_2_split = (l_2 -2*self.cpw_ro.R)/2.
+            l_down = max(0, abs(l_3_in)+self.l_out_min -2*self.cpw_ro.R)
+            l_up = self.l_out_min
+            l_3_out = l_out or self.l_out_min
+        else:
+            go_low = False
+
+        # does never enter if go_low == True
         if side == 'dynamic':
             if l_2 < 1.5*self.d_turn:
                 # attach on far side of readout start-point if start-point is too close to coupler section
@@ -199,8 +222,7 @@ class couplerDeshima(object):
                 l_2 = l_2 + 2*d_lines  + l_1 + 2*self.cpw_ro.R
             else:
                 side = 'close'
-        l_3_in = coupler_distance - 1*self.cpw_ro.R # Distance from start to beginning of coupler section
-        l_3_out = l_out or l_3_in
+
         if l_3_out < self.l_out_min:
             print "WARNING: COUPLER OUT LENGTH SHORTER THAN MINIMUM"
         if debug:
@@ -208,14 +230,20 @@ class couplerDeshima(object):
             print l_1, l_2, l_3_in, l_3_out
 #            print gg.cle, print base.
         # Draw shit
-        self.cpw_ro.wirego(direction_in, l_2)
-        self.cpw_ro.turngo(0, direction_coupler, bridgeFront = True, bridgeAfter = True)
 
-#        if self.l_out_min > 0:
-        print l_3_in, self.l_out_min, l_3_in - self.l_out_min
-        self.cpw_ro.wirego(0, l_3_in - self.l_out_min)
-        if self.l_out_min > 0:
-            self.cpw_ro.wirego(0, self.l_out_min, bridgePositions = [self.l_out_min/2.])
+        print l_1, l_2, l_3_in
+        if not go_low:
+            self.cpw_ro.wirego(direction_in, l_2)
+            self.cpw_ro.turngo(0, direction_coupler, bridgeFront = True, bridgeAfter = True)
+            self.cpw_ro.wirego(0, l_3_in - self.l_out_min)
+        else:
+            self.cpw_ro.wirego(direction_in, l_2_split)
+            self.cpw_ro.turngo(0, -direction_coupler)
+            self.cpw_ro.wirego(0, l_down)
+            self.cpw_ro.turngo(0, direction_in)
+            self.cpw_ro.wirego(0, l_2_split)
+            self.cpw_ro.turngo(0, direction_coupler)
+        self.cpw_ro.wirego(0, self.l_out_min, bridgePositions = [self.l_out_min/2.])
         self.cpw_ro.wirego(0, l_coupler)
         if side == 'close':
             self.cpw_ro.turngo(0, direction_in, bridgeFront = True, bridgeAfter = False)
