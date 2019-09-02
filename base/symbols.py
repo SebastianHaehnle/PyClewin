@@ -21,10 +21,28 @@ def toplevelSymbol(synumber, syname):
     gg.w('(Top level:);\n')
     defineSymbol(synumber, syname)
 
-def placeSymbol(synumber, position):
-    gg.w('C {:d} T{:6.0f} {:6.0f}'.format(synumber, position[0]*gg.scale, position[1]*gg.scale))
+def placeSymbol(synumber, position, rotate = 0):
+    if type(synumber) == str:
+        synumber = gg.symbol_list.index(synumber)+1
+    rotationstring = ''
+    if rotate == 90:
+        rotationstring = 'R 0 1 '
+    elif rotate == -90:
+        rotationstring = 'R 0 -1 '
+    gg.w('C {:d} {:s}T{:6.0f} {:6.0f}'.format(synumber, rotationstring, position[0]*gg.scale, position[1]*gg.scale))
     gg.nl()
 
 def endSymbol():
     gg.w('DF')
     gg.nl()
+    
+def startSymbolWriting():
+    """
+    Clear Symbol writing capabilities from possibly old junk
+    """
+    gg.doSymbolWriting = True
+    gg._s = ''
+    gg.symbol_list = []
+    gg.symbol_currentid = None
+    gg.symbol_topid = None
+    gg.symbol_s = []

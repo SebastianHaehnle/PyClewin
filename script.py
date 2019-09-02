@@ -12,9 +12,11 @@ import collections
 
 npa = np.array
 
-class script():
+class script(object):
     def __init__(self):
-        self.s = ''
+#        self.s = ''
+        self._s = ''
+        self.doSymbolWriting = True
         self.scale = 1e3
         self.cle = np.array([0., 0.])
         self.cle_complex = self.cle[0] + 1j*self.cle[1]
@@ -22,10 +24,14 @@ class script():
         self.back = 0.
         self.mark = collections.OrderedDict()
         self.symbol = collections.OrderedDict()
+        self.symbol_list = []
+        self.symbol_currentid = None
+        self.symbol_topid = 0
+        self.symbol_s = []
         self._flip = np.array([[1.,0.],[0.,1.]])
         self.flip = np.diag(self._flip)
         self.layers = collections.OrderedDict()
-        self.rotator = self.unitmat
+        self._rotator = self.unitmat
         self.current_layer = None
 
         self.connectors = {}
@@ -48,7 +54,7 @@ class script():
 
     @property
     def rotator(self):
-        return self.rotator
+        return self._rotator
 
     @rotator.setter
     def rotator(self, matrix):
@@ -58,11 +64,36 @@ class script():
     def flipper(self):
         return self._flip
 
+    def newSymbol(self, name, top):
+        self.symbol_list.append(name)
+        self.symbol_s.append('')
+        self.symbol_currentid = len(self.symbol_list)-1
+        # Set new main symbol
+        if top:
+            self.symbol_topid = self.symbol_currentid
+
+    def writeToSymbol(self, name):
+        self.symbol_currentid = self.symbol_list.index(name)
+
+    @property
+    def s(self):
+        if self.doSymbolWriting:
+            return self.symbol_s[self.symbol_currentid]
+        else:
+            return self._s
+    
+    @s.setter
+    def s(self, string):
+        if self.doSymbolWriting:
+            self.symbol_s[self.symbol_currentid] = string
+        else:
+            self._s = string
+            
     def w(self, st):
-        self.s += st
+        self.s = self.s + st
 
     def nl(self):
-        self.s += ';\n'
+        self.s = self.s + ';\n'
 
     def go(self, x,y):
         '''
@@ -139,7 +170,8 @@ class script():
         return x + 1j*y
 
     def reset(self):
-        self.s = ''
+#        self.s = ''
+        self._s = ''
         self.scale = 1e3
         self.cle = np.array([0., 0.])
         self.cle_complex = self.cle[0] + 1j*self.cle[1]
@@ -147,6 +179,10 @@ class script():
         self.back = 0.
         self.mark = collections.OrderedDict()
         self.symbol = collections.OrderedDict()
+        self.symbol_list = []
+        self.symbol_currentid = None
+        self.symbol_topid = None
+        self.symbol_s = []
         self._flip = np.array([[1.,0.],[0.,1.]])
         self.flip = np.diag(self._flip)
         self.layers = collections.OrderedDict()
