@@ -58,17 +58,24 @@ def transMSWideM4000(direction, ms, wide, **kwargs):
     rotback()
 
 
-def transHybridWideM4000(direction, hybrid, wide, **kwargs):
+def transHybridWideM4000(direction, hybrid, wide, invert = False, **kwargs):
     ltrans = kwargs.pop('ltrans', 21)
-    rot(direction)
-    layername(hybrid.linelayer)
-    wire(1, 2/3.*ltrans, hybrid.line)
-    layername(hybrid.gndlayer)
-    broaden(1, 1/3.*ltrans, hybrid.line, wide.line/2.)
-    cpwbroadengo(1, ltrans, 0, hybrid.gap+hybrid.line/2., wide.line, wide.gap)
-    rotback()
+    if not invert:
+        rot(direction)
+        layername(hybrid.linelayer)
+        wire(1, 2/3.*ltrans, hybrid.line)
+        layername(hybrid.gndlayer)
+        broaden(1, 1/3.*ltrans, hybrid.line, wide.line/2.)
+        cpwbroadengo(1, ltrans, 0, hybrid.gap+hybrid.line/2., wide.line, wide.gap)
+        rotback()
+    else:
+        layername(hybrid.gndlayer)
+        cpwbroadengo(direction, ltrans, wide.line, wide.gap, 0, hybrid.gap+hybrid.line/2.)
+        broaden(-direction, 1/3.*ltrans, hybrid.line, wide.line/2.)
+        layername(hybrid.linelayer)
+        wire(-direction, 2/3.*ltrans, hybrid.line)
 
-def transTHzHybrid(direction, line_thz, line_hybrid):
+def transTHzHybrid(direction, line_thz, line_hybrid, invert = False):
     """
     Values from Nuri_FP_v2.4.cif, Mask for D1006
     """
@@ -81,15 +88,25 @@ def transTHzHybrid(direction, line_thz, line_hybrid):
     l_overlap = 5
 
     # Drawing
-    rot(direction)
-
-    line_thz.tapergo(1, l_taper1, w_wide, s_wide) # taper
-    base.cpwgo(1, l_wide, w_wide, s_wide) # wide part
-    base.broaden(1, l_taper2, w_wide + 2*s_wide, line_hybrid.wTotal) # reverse taper
-    layername(line_hybrid.linelayer) # aluminum layer
-    base.wire(-1, l_overlap, line_hybrid.line) # draw aluminum line overlap
-
-    rot(np.conjugate(direction))
+    if not invert:
+        rot(direction)
+    
+        line_thz.tapergo(1, l_taper1, w_wide, s_wide) # taper
+        base.cpwgo(1, l_wide, w_wide, s_wide) # wide part
+        base.broaden(1, l_taper2, w_wide + 2*s_wide, line_hybrid.wTotal) # reverse taper
+        layername(line_hybrid.linelayer) # aluminum layer
+        base.wire(-1, l_overlap, line_hybrid.line) # draw aluminum line overlap
+    
+        rot(np.conjugate(direction))
+    else:
+        layername(line_hybrid.linelayer) # aluminum layer
+        base.wire(direction, l_overlap, line_hybrid.line) # draw aluminum line overlap
+        layername(line_hybrid.gndlayer) # aluminum layer
+        base.broaden(-direction, l_taper2, w_wide + 2*s_wide, line_hybrid.wTotal) # reverse taper
+        base.cpwgo(direction, l_wide, w_wide, s_wide) # wide part
+        base.movedirection(direction, l_taper1)
+        line_thz.taper(-direction, l_taper1, w_wide, s_wide) # taper
+        
     return direction
 
 

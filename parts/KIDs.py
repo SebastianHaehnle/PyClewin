@@ -150,7 +150,7 @@ class Hybrid(KID_mask):
 
 
 
-    def draw(self, direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included = True, coupler_type = 'default', start = 'short'):
+    def draw(self, direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included = True, coupler_type = 'default', start = 'short', shape = None, **kwargs):
         """
         Draws KID with structure as defined by self instance at current point.
         L_tot = l_hybrid + l_wide + l_coupler
@@ -163,9 +163,13 @@ class Hybrid(KID_mask):
         if coupler_included:
             l_wide = l_wide - l_coupler
         self.kidids.append(kid_id)
-        rot(direction)
-        setmark('kidlevel_short')
-        if 'straight' in self.shape:
+        print "t1.4", shape
+        shape = shape or self.shape
+        print "t1.5", shape
+        if shape == 'straight' :
+            rot(direction)
+            setmark('kidlevel_short')
+            
             if self.short_length != 0:
                 base.layername(self.line_hybrid.linelayer)
                 base.wire(-1, self.short_length, self.line_hybrid.line)
@@ -192,8 +196,47 @@ class Hybrid(KID_mask):
                 self.line_coupler.open_end(1)
                 self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
             self.draw_SiN(*self.SiN_size)
-        gomark('kidlevel_open')
-        rot(np.conjugate(direction))
+            gomark('kidlevel_open')
+            rot(np.conjugate(direction))
+            
+        elif shape == 'bend_right' or shape == 'bend_left':
+            print "t2", shape
+            l_wide_1 = 20
+            l_wide_2 = l_wide - l_wide_1 - np.pi*self.line_wide.R
+            base.movedirection(direction, l_hybrid+l_wide-l_wide_2) # go to start position at bend
+            setmark('kidlevel_bend')
+            # Draw bend and hybrid section towards shorted end
+            if shape == 'bend_right':
+                print 't3', direction, -direction*(-1j)
+                self.line_wide.turngo(-direction, -direction*(-1j))
+            
+            elif shape == 'bend_left':
+                self.line_wide.turngo(-direction, -direction*(1j))
+            self.line_wide.wirego(0, l_wide_1)
+            self.transition_hybrid(self.line_wide.direction, self.line_hybrid, self.line_wide, invert = True)
+            self.line_hybrid.wirego(self.line_wide.direction, l_hybrid)
+            setmark('kidlevel_short')
+            if self.short_length != 0:
+                base.layername(self.line_hybrid.linelayer)
+                base.wire(self.line_hybrid.direction, self.short_length, self.line_hybrid.line)
+            # Draw Wide section and coupler
+            gomark('kidlevel_bend')
+            self.line_wide.wirego(direction, l_wide_2)
+            if self.transition_coupler == None:
+                self.line_coupler.wirego(0, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(0)
+                self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
+            else:
+                self.transition_coupler(self.line_wide.direction, self.line_wide, self.line_coupler)
+                self.line_coupler.wirego(0, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(0)
+                self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
+            
+        else:
+            print "WARNING: KID TYPE NOT FOUND FOR HYBRID"
+            
         setmark('KID_coupler_%d' % kid_id)
 
     def draw_SiN(self, length, width):
@@ -218,13 +261,22 @@ class Hybrid_Fabryperot(Hybrid):
         self.line_thz = line_thz
         self.transition_thz = transition_thz
 
-    def draw(self, direction, l_hybrid, l_wide, l_coupler, l_thz, kid_id, coupler_included = True, coupler_type = 'default', start = 'short'):
+    def draw(self, direction, l_hybrid, l_wide, l_coupler, l_thz, kid_id, coupler_included = True, coupler_type = 'default', start = 'short', shape = None, **kwargs):
         setmark('kidlevel_fp')
         # Draw thz line and transition to aluminum first
-        self.line_thz.wirego(direction, l_thz)
-        self.transition_thz(direction, self.line_thz, self.line_hybrid)
-        super(Hybrid_Fabryperot, self).draw(direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included, start)
-
+        shape = shape or self.shape
+        if shape == 'straight':
+            self.line_thz.wirego(direction, l_thz)
+            self.transition_thz(direction, self.line_thz, self.line_hybrid)
+            super(Hybrid_Fabryperot, self).draw(direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included, start)
+        else:
+            print "t1"
+            super(Hybrid_Fabryperot, self).draw(direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included, start, shape = shape)
+            gomark('kidlevel_short')
+            self.transition_thz(self.line_hybrid.direction, self.line_thz, self.line_hybrid, invert = True)
+            self.line_thz.wirego(self.line_hybrid.direction, l_thz)
+            
+            
 
 class KID_NBTIN(KID_mask):
     def __init__(self, line_wide, line_coupler, transition_coupler, shape = 'straight', short_length = 0):
@@ -234,7 +286,7 @@ class KID_NBTIN(KID_mask):
         self.transition_coupler = transition_coupler
 
 
-    def draw(self, direction, l_wide, l_coupler, kid_id, coupler_included = True, coupler_type = 'default',start = 'short'):
+    def draw(self, direction, l_wide, l_coupler, kid_id, coupler_included = True, coupler_type = 'default',start = 'short', **kwargs):
         if coupler_included:
             l_wide = l_wide - l_coupler
         self.kidids.append(kid_id)
@@ -313,7 +365,7 @@ class KID_MS_pure(KID_mask):
         self.line_coupler = line_coupler
         self.line_readout = line_readout
 
-    def draw(self, direction, l_kid, l_coupler, kid_id, coupler_included = True, coupler_type = 'elbow', start = 'short'):
+    def draw(self, direction, l_kid, l_coupler, kid_id, coupler_included = True, coupler_type = 'elbow', start = 'short', **kwargs):
         if coupler_included:
             l_kid = l_kid - l_coupler
         self.kidids.append(kid_id)
