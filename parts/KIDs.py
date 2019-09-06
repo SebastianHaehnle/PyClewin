@@ -213,6 +213,7 @@ class Hybrid(KID_mask):
             elif shape == 'bend_left':
                 self.line_wide.turngo(-direction, -direction*(1j))
             self.line_wide.wirego(0, l_wide_1)
+            setmark('kidlevel_widestart')
             self.transition_hybrid(self.line_wide.direction, self.line_hybrid, self.line_wide, invert = True)
             self.line_hybrid.wirego(self.line_wide.direction, l_hybrid)
             setmark('kidlevel_short')
@@ -233,7 +234,8 @@ class Hybrid(KID_mask):
                 setmark('kidlevel_open')
                 self.line_coupler.open_end(0)
                 self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
-            
+            self.draw_SiN(*self.SiN_size)
+            gomark('kidlevel_open')
         else:
             print "WARNING: KID TYPE NOT FOUND FOR HYBRID"
             
@@ -241,15 +243,22 @@ class Hybrid(KID_mask):
 
     def draw_SiN(self, length, width):
         base.layername(self.SiN_layer)
-        if self.SiN_patchtype == 'full' and self.shape == 'straight':
+        if self.SiN_patchtype == 'full':
             if self.type == 'hybrid_fabryperot':
                 gomark('kidlevel_short')
             elif self.type == 'broadband':
                 gomark('kidlevel_hybridstart')
             else:
                 gomark('kidlevel_short')
-            base.wire(-1, length, width)
-            base.wire(1, x2m('kidlevel_widestart') + length, width)
+            if self.line_hybrid.direction == self.line_wide.direction:
+                direction = self.line_hybrid.direction
+            else:
+                direction = -self.line_hybrid.direction
+                
+            base.wire(-direction, length, width)
+            
+            base.wire(direction, max(dist2mark('kidlevel_widestart')) + length, width)
+#        elif self.SiN_patchtype == 'full' and (self.shape == 'bend_right' or self.shape == 'bend_left':
         base.layername(self.line_hybrid.gndlayer)
 
 class Hybrid_Fabryperot(Hybrid):
