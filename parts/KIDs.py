@@ -198,6 +198,63 @@ class Hybrid(KID_mask):
             self.draw_SiN(*self.SiN_size)
             gomark('kidlevel_open')
             rot(np.conjugate(direction))
+        
+        elif shape == 'meander':
+            
+            setmark('kidlevel_short')
+            if self.short_length != 0:
+                base.layername(self.line_hybrid.linelayer)
+                base.wire(-direction, self.short_length, self.line_hybrid.line)
+            self.connections_short[kid_id] = base.connector(direction, 'KID_short_%d' % kid_id)
+            self.line_hybrid.wirego(direction, l_hybrid)
+            self.transition_hybrid(direction, self.line_hybrid, self.line_wide)    
+            setmark('kidlevel_widestart')
+                     
+            mw = kwargs['meander_width']
+            mOffset = kwargs.pop('meander_offset', 0)
+            l_wide = l_wide - mOffset
+            mdir = kwargs['meander_direction']
+            mspace = 2*self.line_wide.R
+            mcurve = np.pi*self.line_wide.R
+            munit = mw + mcurve
+            mOverhead = mcurve + mw - mspace
+            if mdir == 'straight':
+                mN_upper = np.ceil((l_wide - 2*mcurve - mw + mspace)/(munit))
+                mOverflow = (l_wide - mOverhead - munit*mN_upper)/mN_upper
+                mWidth = mw - mOverflow
+                self.line_wide.turngo(direction, 1j*direction)
+                self.line_wide.wirego(0, mWidth/2-self.line_wide.R)
+                curve_mod = -1j
+                for i in xrange(int(mN_upper)):
+                    self.line_wide.turngo(0, curve_mod*self.line_wide.direction)
+                    self.line_wide.turngo(0, curve_mod*self.line_wide.direction)
+                    self.line_wide.wirego(0, mWidth)
+                    curve_mod = -curve_mod                     
+                self.line_wide.turngo(0, curve_mod*self.line_wide.direction)
+                self.line_wide.turngo(0, curve_mod*self.line_wide.direction)
+                self.line_wide.wirego(0, mWidth/2-self.line_wide.R)
+                self.line_wide.turngo(0, -curve_mod*self.line_wide.direction)
+                self.line_wide.wirego(0, mOffset)
+            # End wide section
+            if 'elbow' in self.shape:
+                self.transition_coupler(1j, self.line_wide, self.line_coupler, direction_in = 1)
+                self.line_coupler.wirego(1j, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(1j)
+                self.connections_coupler[kid_id] = base.connector(np.exp(1j*(np.angle(direction)+np.pi/2)), 'KID_coupler_%d' % kid_id)
+            elif self.transition_coupler == None:
+                self.line_coupler.wirego(self.line_wide.direction, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(0)
+                self.connections_coupler[kid_id] = base.connector(-self.line_coupler.direction, 'KID_coupler_%d' % kid_id)
+            else:
+                self.transition_coupler(self.line_wide.direction, self.line_wide, self.line_coupler)
+                self.line_coupler.wirego(0, l_coupler)
+                setmark('kidlevel_open')
+                self.line_coupler.open_end(0)
+                self.connections_coupler[kid_id] = base.connector(-direction, 'KID_coupler_%d' % kid_id)
+            self.draw_SiN(*self.SiN_size)
+            gomark('kidlevel_open')
             
         elif shape == 'bend_right' or shape == 'bend_left':
             print "t2", shape
@@ -277,7 +334,11 @@ class Hybrid_Fabryperot(Hybrid):
         if shape == 'straight':
             self.line_thz.wirego(direction, l_thz)
             self.transition_thz(direction, self.line_thz, self.line_hybrid)
-            super(Hybrid_Fabryperot, self).draw(direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included, start)
+            super(Hybrid_Fabryperot, self).draw(direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included, start, shape)
+        elif shape == 'meander':
+            self.line_thz.wirego(direction, l_thz)
+            self.transition_thz(direction, self.line_thz, self.line_hybrid)
+            super(Hybrid_Fabryperot, self).draw(direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included, start, shape = shape, **kwargs)            
         else:
             print "t1"
             super(Hybrid_Fabryperot, self).draw(direction, l_hybrid, l_wide, l_coupler, kid_id, coupler_included, start, shape = shape)

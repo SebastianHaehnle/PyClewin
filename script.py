@@ -71,6 +71,15 @@ class script(object):
         # Set new main symbol
         if top:
             self.symbol_topid = self.symbol_currentid
+        self.cle = np.array([0., 0.])
+        self.cle_complex = self.cle[0] + 1j*self.cle[1]
+        self.angle = 0.
+        self.back = 0.
+        self.mark = collections.OrderedDict()
+        self.rotator = self.unitmat
+        self.current_layer = None
+
+        self.connectors = {}
 
     def writeToSymbol(self, name):
         self.symbol_currentid = self.symbol_list.index(name)

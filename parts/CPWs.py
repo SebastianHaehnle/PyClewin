@@ -213,7 +213,7 @@ class CPW(object):
         direction_in = np.array([self.direction.real, self.direction.imag])
         direction_out = np.array([connection.direction.real, connection.direction.imag])
         dir_in = self.direction
-        self.used_wires = []
+#        self.used_wires = []
         if self.direction == connection.direction:
             print 'c1'
             ### Same direction

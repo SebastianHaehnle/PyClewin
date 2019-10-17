@@ -80,12 +80,12 @@ def transTHzHybrid(direction, line_thz, line_hybrid, invert = False):
     Values from Nuri_FP_v2.4.cif, Mask for D1006
     """
     # Shape definitions
-    l_taper1 = 6
-    l_wide = 6
+    l_taper1 = 3
+    l_wide = 3
     s_wide = 4.8
     w_wide = 3.0
     l_taper2 = 3.3
-    l_overlap = 5
+    l_overlap = 3
 
     # Drawing
     if not invert:
@@ -236,9 +236,7 @@ def coupler_Fabryperot_ms_cpw(direction,side,ms,width_overlap,l_overlap):
     return direction
 
 def coupler_Fabryperot_gap(direction, side, gap_length):
-    rot(direction)
-    go(gap_length, 0)
-    rot(np.conjugate(direction))
+    movedirection(direction, gap_length)
     return direction
 
 

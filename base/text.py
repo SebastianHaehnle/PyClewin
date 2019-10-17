@@ -10,12 +10,14 @@ from PyClewin import *
 from .ucs import *
 from .wires import poly
 
-def introfont():
+def introfont(**kwargs):
     gg.w('(CleFont -2048 0 0 0 0 16777216 536870919 1634300481 108 0 0 0 0 0 0);\n')
-    gg.w('(CleTransform 0 1072693248 0 0 0 0 0 1072693248 0 0 0 0);\n')
+    transform_str = kwargs.pop('transform', '0 0 0')
+    gg.w('(CleTransform 0 1072693248 0 0 0 0 0 1072693248 0 %s);\n' %transform_str)
 
 class text():
     def __init__(self, direction, string, height = 100, **kwargs):
+        self.kwargs = kwargs
         self.height = height
         self.direction = direction
         self.charspace = self.height*0.1
@@ -29,8 +31,8 @@ class text():
     multipolychar = ['=']
 
     def writetext(self):
-        introfont()
-        gg.w('(CleText {:d} {:d} {:d} {:d} {:d} {});\n'.format(int(gg.cle[0]), int(gg.cle[1]), self.lentotal, int(self.height*gg.scale), self.lentotal, self.string))
+        introfont(**self.kwargs)
+        gg.w('(CleText {:d} {:d} {:d} {:d} {:d} {});\n'.format(int(gg.cle[0]*gg.scale), int(gg.cle[1]*gg.scale), self.lentotal, int(self.height*gg.scale), self.lentotal, self.string))
         setmark('textstart')
         rot(self.direction)
         go(0, - self.height/2.)
@@ -102,7 +104,7 @@ class text():
                 charxyflat[i] = np.array(map(int, chi.split()))
                 size[i] = len(charxyflat[i])/2
                 charxy[i] = charxyflat[i].reshape((size[i], 2))
-                self.charxy[i] = (charxy[i] * self.height/text.height00/gg.scale).transpose()
+                self.charxy[i] = (charxy[i] * float(self.height)/text.height00/gg.scale).transpose()
                 self.width[i] = np.max(self.charxy[i][0]) - np.min(self.charxy[i][0])
             self.width = max(self.width)
         else:
