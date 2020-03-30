@@ -21,7 +21,7 @@ def toplevelSymbol(synumber, syname):
     gg.w('(Top level:);\n')
     defineSymbol(synumber, syname)
 
-def placeSymbol(synumber, position, rotate = 0):
+def placeSymbol(synumber, position, rotate = 0, mirror = ''):
     if type(synumber) == str:
         synumber = gg.symbol_list.index(synumber)+1
     rotationstring = ''
@@ -29,7 +29,12 @@ def placeSymbol(synumber, position, rotate = 0):
         rotationstring = 'R 0 1 '
     elif rotate == -90:
         rotationstring = 'R 0 -1 '
-    gg.w('C {:d} {:s}T{:6.0f} {:6.0f}'.format(synumber, rotationstring, position[0]*gg.scale, position[1]*gg.scale))
+    mirrorstring = ''
+    if mirror == 'x':
+        mirrorstring = 'MX'
+    elif mirror == 'y':
+        mirrorstring = 'MY'
+    gg.w('C {:d} {:s} {:s}T{:6.0f} {:6.0f}'.format(synumber, mirrorstring, rotationstring, position[0]*gg.scale, position[1]*gg.scale))
     gg.nl()
 
 def endSymbol():
