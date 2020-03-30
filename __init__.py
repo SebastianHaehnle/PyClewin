@@ -9,6 +9,7 @@ from .script import *
 #import base
 from .base import *
 import parts
+import symbols
 #from parts import *
 import chip
 import numpy as np
