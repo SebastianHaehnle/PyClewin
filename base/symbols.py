@@ -8,9 +8,15 @@ Created on Mon Sep 05 13:18:13 2016
 from ..script import *
 
 def introSymbols():
+    """
+    DEPRECATED
+    """
     gg.w('(Symbol definitions:);\n')
 
 def defineSymbol(synumber, syname):
+    """
+    DEPRECATED
+    """
     gg.w('DS{} 1 10'.format(synumber))
     gg.nl()
     gg.w('9 {}'.format(syname))
@@ -18,10 +24,29 @@ def defineSymbol(synumber, syname):
     gg.symbol[syname] = [synumber]
 
 def toplevelSymbol(synumber, syname):
+    """
+    DEPRECATED
+    """
     gg.w('(Top level:);\n')
     defineSymbol(synumber, syname)
 
 def placeSymbol(synumber, position, rotate = 0, mirror = ''):
+    """
+    Places symbol in the currently active symbol.
+    WARNING: Always check final symbol position when rotation and mirror is active. Might give unexpected results.
+    
+    Parameters:
+    ------
+    synumber : int or str
+        either the number of the symbol or its namestring
+    position : float
+        Position of the symbol, this corresponds to the 0/0 position of the defined symbol.
+    rotate : 0/90/-90
+        Default = 0. Rotates the symbol by given amount. WARNING: At the moment only supports full 90 or -90 degree rotation.
+    mirror : 'x' or 'y'
+        Mirrors symbol around x or y axis.
+    """
+    
     if type(synumber) == str:
         synumber = gg.symbol_list.index(synumber)+1
     rotationstring = ''
@@ -38,11 +63,15 @@ def placeSymbol(synumber, position, rotate = 0, mirror = ''):
     gg.nl()
 
 def endSymbol():
+    """
+    DEPRECATED
+    """
     gg.w('DF')
     gg.nl()
     
 def startSymbolWriting():
     """
+    This goes at the start of ever script. Think about joining this with the essentials.py file
     Clear Symbol writing capabilities from possibly old junk
     """
     gg.doSymbolWriting = True

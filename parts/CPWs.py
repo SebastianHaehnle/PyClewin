@@ -13,17 +13,42 @@ import scipy.constants as spc
 
 class CPW(object):
     '''
-    Simple single layer CPW, drawn in negative.
-    Input:
-        line    :: width of central line
-        gap     :: width of gap between line and gnd
-        mesh    :: resolution of polygon used for corners
-    Functions:
-        wire    :: draws straight CPW
-        up      :: draws upward 90degree CPW
-        down    :: draws downward 90degree CPW
-        taper   :: draws tapered section
-        [fct]go :: calls draw function and moves coordinate system to end of line
+    Simple single layer CPW, drawn in negative. This is the parent object for more complex CPW objects (e.g. with bridges).
+    This object keeps track of the last used drawing direction. Use direction=0 to keep drawing in that direction.
+    
+    Parameters
+    ----------
+    line : float
+        width of central line
+    gap : float 
+        width of gap between line and gnd
+    mesh : int
+        resolution of polygon used for corners
+    R : float
+        radius of curvature for corners
+    gndlayer : string
+        name of metal layer
+    **kwargs:
+        supports 'bridge' input    
+        
+    Important Methods
+    ----------
+    wire    : 
+        draws straight CPW
+    up      : 
+        draws upward 90degree CPW
+    down    : 
+        draws downward 90degree CPW
+    turn    :
+        Automatically selects between up and down fcts based on desired directions.
+    taper   : 
+        draws tapered section
+    [fct]go : 
+        calls any of the previous draw functions and moves coordinate system to end of line
+    open    :
+        draws open end for CPW
+    connect : 
+        Automatically draw CPW connecting the current position to a given connection point
     '''
     def __init__(self, line, gap, mesh, R, gndlayer, **kwargs):
         self.line = line
@@ -46,6 +71,10 @@ class CPW(object):
         return self.line + 2*self.gap
 
     def process_direction(self, direction):
+        """
+        Internal helper function.
+        Returns either the given direction or the last used direction if direction=0. If direction !=0, sets the internal direction as the input.
+        """
         if direction == None or direction == 0:
             direction = self.direction
         else:
@@ -60,7 +89,18 @@ class CPW(object):
 
     def taper(self, direction, L, newline, newgap):
         """
-        info
+        Taper the line over a given length.
+        
+        Parameters
+        ------
+        direction : complex float
+            PyClewin standard direction. Taper goes from current line geometry to new line geometry
+        L : float
+            length of taper section
+        newline : float
+            line width at end of taper
+        newgap : float
+            gap width at end of taper
         """
         if direction == None or direction == 0:
             direction = self.direction
@@ -74,10 +114,7 @@ class CPW(object):
         return direction
 
     def tapergo(self, direction, L, newline, newgap):
-        if direction == None or direction == 0:
-            direction = self.direction
-        else:
-            self.direction = direction
+        direction = self.process_direction(direction)
         self.taper(direction, L, newline, newgap)
         rot(direction)
         go(float(L), 0)
@@ -85,6 +122,9 @@ class CPW(object):
         return direction
 
     def wire(self, direction, L, *args, **kwargs):
+        """
+        Draw straight line of length L
+        """
         if direction == None or direction == 0:
             direction = self.direction
         # set correct layername, but only if really set
@@ -97,10 +137,7 @@ class CPW(object):
         return direction
 
     def wirego(self, direction, L, *args, **kwargs):
-        if direction == None or direction == 0:
-            direction = self.direction
-        else:
-            self.direction = direction
+        direction = self.process_direction(direction)
         self.wire(direction, L, *args, **kwargs)
         rot(direction)
         go(float(L), 0)
@@ -109,6 +146,9 @@ class CPW(object):
         return direction
 
     def up(self, direction, R = -1, *args, **kwargs):
+        """
+        Draw curve going 90degree up (looking in the positive x-direction)
+        """
         if direction == None or direction == 0:
             direction = self.direction
         if R == -1:
@@ -125,10 +165,7 @@ class CPW(object):
         return direction
 
     def upgo(self, direction, R = -1, *args, **kwargs):
-        if direction == None or direction == 0:
-            direction = self.direction
-        else:
-            self.direction = direction
+        direction = self.process_direction(direction)
         if R == -1:
             R = self.R
         self.up(direction, R, *args, **kwargs)
@@ -140,6 +177,9 @@ class CPW(object):
         return direction_out
 
     def down(self, direction, R = -1, *args, **kwargs):
+        """
+        Draw curve going 90degree down (looking in the positive x-direction)
+        """
         if direction == None or direction == 0:
             direction = self.direction
         if R == -1:
@@ -156,10 +196,7 @@ class CPW(object):
         return direction
 
     def downgo(self, direction, R = -1, *args, **kwargs):
-        if direction == None or direction == 0:
-            direction = self.direction
-        else:
-            self.direction = direction
+        direction = self.process_direction(direction)
         if R == -1:
             R = self.R
         self.down(direction, R, *args, **kwargs)
@@ -171,6 +208,16 @@ class CPW(object):
         return direction_out
 
     def turn(self, direction_in, direction_out, R = -1, *args, **kwargs):
+        """
+        Selects between up and down drawing functions based on direction_in and direction_out
+        
+        Parameters
+        ------
+        direction_in : complex float
+            Tangential direction at input of curve
+        direction_out : complex gloat
+            Tangential direction at output of curve
+        """
         if base.cornerDirection(direction_in, direction_out) > 0:
             self.up(direction_in, R, *args, **kwargs)
         else:
@@ -178,6 +225,7 @@ class CPW(object):
         return direction_in
 
     def turngo(self, direction_in, direction_out, R = -1, *args, **kwargs):
+
         if direction_in == None or direction_in == 0:
             direction_in = self.direction
         else:
@@ -193,6 +241,13 @@ class CPW(object):
 
     def open_end(self, direction, *args, **kwargs):
         """
+        Draws an open end of the CPW, which is essentially a gap at the end of the line.
+        
+        Parameters
+        ------
+        direction : complex float
+            Standard direction parameter of PyClewin (1+0j --> x direction, 0+1j --> y direction)
+            Accepts 0 to use internally saved direction
         kwargs:
             l_open : length of gap, default = wTotal
         """
@@ -208,6 +263,15 @@ class CPW(object):
 
 
     def connect(self, connection, *args, **kwargs):
+        """
+        Automatically draw CPW connecting the current position to a given connection point.
+        This works well on reasonably far away points, but be careful when points are close to each other.
+        
+        Parameters
+        ------
+        connection : 
+            class or named tuple containing a direction and a marker. See ucs.py: connector = collections.namedtuple('connector', ['direction', 'mark'])
+        """
         print "connecting", connection.mark
         distance = base.dist2markSigned(connection.mark)
         direction_in = np.array([self.direction.real, self.direction.imag])
@@ -345,10 +409,10 @@ class CPWhybrid(CPW):
         return direction
 
 class CPWwithBridge(CPW):
-    def __init__(self, line, gap, mesh, R, cpwlayer, bridgeClass, bridgeDistance):
-        CPW.__init__(self, line, gap, mesh, R, cpwlayer)
-        self.cpwlayer = cpwlayer                # layer of cpw
-        self.bridgeClass = bridgeClass              # Instance of parts.Bridges.Bridge
+    def __init__(self, line, gap, mesh, R, gndlayer, bridge, bridgeDistance = 1e15):
+        CPW.__init__(self, line, gap, mesh, R, gndlayer)
+        self.cpwlayer = gndlayer                # layer of cpw
+        self.bridgeClass = bridge              # Instance of parts.Bridges.Bridge
         self.bridgeDistance = bridgeDistance    # Distance between bridges
 
     def wire(self, direction, L, bridgeDistance = None, bridgesOff = False, bridgeStart = False, **kwargs):

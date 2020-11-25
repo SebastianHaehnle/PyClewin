@@ -9,6 +9,10 @@ from ..script import *
 
 
 def introScript():
+    """
+    DEPRECATED, use writeTotalString instead!
+    Intro of a .cle file. This is automatically written now using writeTotalString.
+    """
 #    gg.doSymbolWriting = True
     gg.s = ''
     gg.w('(CIF written by CleWin 3.1);\n')
@@ -18,7 +22,10 @@ def introScript():
     gg.w('(3584 CA  Utrecht);\n')
     gg.w('(Nederland);\n')
 
-def outroScript(synumber):
+def outroScript(synumber):    
+    """
+    DEPRECATED, use writeTotalString instead!
+    """
     # synumber is number of the symbol, should be 1 higher than highest symbol # used.
     gg.w('DF;\n')
     if synumber > 0:
@@ -26,10 +33,17 @@ def outroScript(synumber):
     gg.w('E\n')
 
 def writeScript(filename):
+    """
+    DEPRECATED, use writeTotalString instead!
+    """
     with open(filename, 'w') as ff:
         ff.write(gg.s)
 
 def writeTotalString(filename):
+    """
+    This is the final command in a PyClewin chip or wafer script.
+    Writes everything to the file with the name given by filename. 
+    """
     # Switch to writing global string
     gg.doSymbolWriting = False
     

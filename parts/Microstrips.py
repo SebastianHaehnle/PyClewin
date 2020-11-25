@@ -11,7 +11,7 @@ import numpy as np
 
 class Microstrip(object):
     '''
-    Base microstrip class. Only draws central line and dielectric layer (both positive).
+    Base microstrip class. Only draws central line and dielectric layer (both positive masks). Groundlayer is assumed to be a negative mask and therefore not drawn.
     Input:
         line        :: line width
         dielwidth   :: width of dielectric layer
@@ -32,7 +32,11 @@ class Microstrip(object):
         self.R = R
 
 
-    def process_direction(self, direction):
+    def process_direction(self, direction):        
+        """
+        Internal helper function.
+        Returns either the given direction or the last used direction if direction=0. If direction !=0, sets the internal direction as the input.
+        """
         if direction == None or direction == 0:
             direction = self.direction
         else:
@@ -41,7 +45,8 @@ class Microstrip(object):
 
     def taper(self, direction, L, newline):
         '''
-        tapers only the central wire, do not care about dielectric width
+        Draw tapered line going from current linewidth to new linewidth over length L.
+        Tapers only the central wire, does not care about dielectric width
         '''
         rot(direction)
         layername(self.linelayer)
@@ -58,6 +63,9 @@ class Microstrip(object):
         return direction
 
     def wire(self, direction, L):
+        """
+        Draw straight line of length L
+        """
         direction = self.process_direction(direction)
         layername(self.linelayer)
         wire(direction, L, self.line)
@@ -74,6 +82,9 @@ class Microstrip(object):
         return direction
 
     def up(self, direction, R):
+        """
+        Draw curve going 90degree up (looking in the positive x-direction)
+        """
         if R == -1:
             R = self.R
         layername(self.linelayer)
@@ -92,6 +103,9 @@ class Microstrip(object):
         return direction
 
     def down(self, direction, R):
+        """
+        Draw curve going 90degree down (looking in the positive x-direction)
+        """
         if R == -1:
             R = self.R
         layername(self.linelayer)
@@ -156,6 +170,10 @@ class Microstrip(object):
         return direction_out
 
     def end_open(self, direction, dielectric_length = -1):
+        """
+        Draw open microstrip end (only dielectric with no wire)
+        Defaults to use internal parameter dielextension as length of dielectric. Can be overwritten using parameter dielectric_length.
+        """
         direction = self.process_direction(direction)
         if dielectric_length == -1 :
             dielectric_length = self.dielextension
@@ -164,6 +182,10 @@ class Microstrip(object):
         return direction
 
     def end_short(self, direction, short_length):
+        """
+        Draw shorted microstrip end (only wire with no dielectric)
+        """
+        direction = self.process_direction(direction)
         layername(self.linelayer)
         wire(direction, short_length, self.line)
         return direction

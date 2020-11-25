@@ -136,12 +136,16 @@ class Doubleslot(object):
 """
  Kevin: Doubleslot.gen_from_Juan(line_cpw, slot_cpw, L_transformer + 4.843 ,L_stub, W1ant, W2ant, dant, Want, Lant, 'Mat_plane')
 """
-
+# Silicon doubleslot by Juan for Ls = 1.1 pH @ 350 GHz
 doubleSlot_350ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(3, 2.1857, 4.843+71, 0, 14.571, 9.686, 29.143, 137.143, 235.714, 'NbTiN_GND')
 doubleSlot_650ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2, 2, 0, 4.615, 7.846, 5.215, 15.692, 73.846, 124.615, 'NbTiN_GND')
 doubleSlot_850ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2., 2., 0., 4.235, 6.0, 3.988, 12.0, 56.471, 95.294, 'NbTiN_GND')
 doubleSlot_1100ghz_Si_NbTiN100nm = Doubleslot.gen_from_Juan(2., 2., 0., 6.818, 4.636, 3.082, 9.273, 43.636, 73.636, 'NbTiN_GND')
-
+# Sapphire doubleslot by Juan for Ls = 1.03 pH @ 350 GHz (April 2020)
+doubleSlot_350ghz_Sapphire_NbTiN100nm = Doubleslot.gen_from_Juan(3.5, 1.5, 9.798/2.+216.763, 0, 14.740, 9.798, 24.0, 137.143, 242.775, 'NbTiN_GND')
+doubleSlot_650ghz_Sapphire_NbTiN100nm = Doubleslot.gen_from_Juan(3.5, 1.5, 5.060/2.+109.411, 0, 7.612, 5.060, 14.552, 71.642, 125.373, 'NbTiN_GND')
+doubleSlot_850ghz_Sapphire_NbTiN100nm = Doubleslot.gen_from_Juan(3.5, 1.5, 3.919/2.+84.746, 0, 5.896, 3.919, 12.0, 55.401, 97.110, 'NbTiN_GND')
+doubleSlot_1100ghz_Sapphire_NbTiN100nm = Doubleslot.gen_from_Juan(3.5, 1.5, 3.229/2.+69.815, 0, 4.857, 3.229, 10.571, 45.714, 80.00, 'NbTiN_GND')
 
 
 if __name__ == '__main__':

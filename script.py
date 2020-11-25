@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+Central script for PyClewin. Import this to every new module involved by using:
+from PyClewin import *
+
 Created on Mon Sep 05 11:20:33 2016
 
 @author: sebastian
@@ -13,6 +16,10 @@ import collections
 npa = np.array
 
 class script(object):
+    """
+    This class keeps track of the coordinate system, markers, layers and symbols.
+    A global instance of this class is defined as part of this module.
+    """
     def __init__(self):
 #        self.s = ''
         self._s = ''
@@ -65,6 +72,18 @@ class script(object):
         return self._flip
 
     def newSymbol(self, name, top):
+        """
+        Define a new symbol for clewin.
+        
+        Parameters
+        ----------
+        name : str
+            The name of the symbol
+        top : bool
+            Set True if this is the Main symbol. Set False otherwise
+            
+        """
+
         self.symbol_list.append(name)
         self.symbol_s.append('')
         self.symbol_currentid = len(self.symbol_list)-1
@@ -82,6 +101,15 @@ class script(object):
         self.connectors = {}
 
     def writeToSymbol(self, name):
+        """
+        Set which symbol is written to. This requires the symbol to exist already (done by using newSymbol). 
+        
+        Parameters
+        ----------
+        name : str
+            The symbol name as defined by newSymbol.    
+        """
+        
         self.symbol_currentid = self.symbol_list.index(name)
 
     @property
@@ -106,7 +134,7 @@ class script(object):
 
     def go(self, x,y):
         '''
-        Moves clewin coordinates by amounts x and y
+        Moves local clewin coordinates by amounts x and y
         '''
 #        x,y = self.to_clewin(x,y)
 #        self.cle[0] += x*self.flip[0]
