@@ -16,7 +16,20 @@ def introfont(**kwargs):
     gg.w('(CleTransform 0 1072693248 0 0 0 0 0 1072693248 0 %s);\n' %transform_str)
 
 class text():
+    """
+    Text writing class
+    """
     def __init__(self, direction, string, height = 100, **kwargs):
+        """
+        Parameters
+        --------
+        direction : PyClewin direction
+            orientation of textstr. direction=1 for horizontal
+        string : str
+            Text string to write
+        height : int
+            height of textstr
+        """
         self.kwargs = kwargs
         self.height = height
         self.direction = direction

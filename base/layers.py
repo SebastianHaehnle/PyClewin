@@ -17,9 +17,22 @@ def addLayer(num, name, color):
     gg.layers[name] = color
 
 def layer(num):
+    """
+    Switch clewin to layer defined by its ID number.
+    """
     gg.w('L L{};\n'.format(num))
 
 def layername(name, dictionary = gg.layers):
+    """
+    Switch clewin to layer defined by its name.
+    
+    Parameters
+    -------
+    name : str
+        Layername, case sensitive
+    dictionary : dict
+        Dictionary containing reference to the layer ID. Default is gg.layers.
+    """
     if name != gg.current_layer:
         num = layerindex(name, dictionary)
         layer(num)

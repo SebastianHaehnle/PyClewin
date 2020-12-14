@@ -38,13 +38,20 @@ def square(L, shift = (0,0)):
 
 def squares(layer, polygon, l_sq, d_sq, corner = 1):
     '''
-    Fill polygon with squares
-    input:
-        layer : layername
-        poly : polygon to be filled
-        l_sq : square size
-        d_sq : space between square
-        corner : start corner (1: bot left, 2: bot right, 3: top right, 4: top left)
+    Fill polygon with squares.
+    
+    Parameters
+    --------
+        layer : str
+            Layername
+        polygon : 2D List or np.array
+            Polygon to be filled
+        l_sq : int
+            square size in clewin units
+        d_sq : int
+            space between squares in clewin units
+        corner : int
+            start corner (1: bot left, 2: bot right, 3: top right, 4: top left)
     '''
     polygon = np.array(polygon)
     xybl = np.array([polygon[0].min(), polygon[1].min()])

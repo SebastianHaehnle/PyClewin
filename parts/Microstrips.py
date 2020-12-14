@@ -190,6 +190,10 @@ class Microstrip(object):
         wire(direction, short_length, self.line)
         return direction
 
+    def coupler(self, line_old, width_overlap):
+        diff_line = (width_overlap-line_old)/2
+        die_ext = self.dielextension - diff_line/10
+        return Microstrip(width_overlap, die_ext, self.linelayer, self.diellayer, self.mesh, self.R)        
 
 
 class Microstrip_protected(Microstrip):

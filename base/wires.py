@@ -17,6 +17,14 @@ def poly(xyarray, shift = (0,0)):
     '''
     writes nparray to script-str in UCS with possibility to shift by x,y
     xyarray must be 2D numpy-array [[x positions], [y positions]]
+    
+    Parameters
+    --------
+    xyarray : 2D List or np.array
+        xy coordinates of polynomial, given as [[x0,x1,...,xn],[y0,y1,...,yn]]
+    shift : Tuple
+        Used to shift given polynomial by (x,y). Not necessarily well supported.
+        
     '''
     xyarray = np.array(xyarray)
     gg.w('P ')
@@ -30,10 +38,36 @@ def poly(xyarray, shift = (0,0)):
 #==============================================================================
 
 def makeWire(L, W):
+    """
+    Core function to make an array for a straight line of length L and width W. Use as input for poly().
+    Returns xy array
+    
+    Parameters
+    --------
+    L : float
+        line length in clewin units
+    W : float
+        line width in clewin units
+    """
     xy = np.array([[0, L, L, 0], [-W/2., -W/2., W/2., W/2.]])
     return xy
 
 def makeTurn(R, line, mesh, rad):
+    """
+    Core function to make a polygon array for a curved line.
+    Returns xy array
+    
+    Parameters
+    --------
+    R : float
+        Radius of curvature in clewin units
+    line : float
+        Line width in clewin units
+    mesh : int
+        Number of points to sample the curve
+    rad : float
+        Angle covered by the curved line in radians
+    """
 #    Some stuff to make this function work with different angles (tested with 90 and 180)
     fac = rad/np.pi
     mesh = abs(int(mesh*fac))
@@ -61,12 +95,18 @@ def makeTurn(R, line, mesh, rad):
 
 
 def wire(direction, L, W, shift = (0,0)):
+    """
+    Draw straight line and do not change UCS.
+    """
     rot(direction)
     poly(makeWire(L,W), shift)
     rotback()
     return direction
 
 def wirego(direction, L, W, shift = (0,0)):
+    """
+    Draw straight line and move UCS to end of wire.
+    """
     wire(direction, L, W, shift)
     rot(direction)
     go(L, 0)
@@ -74,30 +114,45 @@ def wirego(direction, L, W, shift = (0,0)):
     return direction
 
 def turn(direction, angle, R, line, mesh, shift = (0,0)):
+    """
+    Draw arbitrary curved line with no change to UCS
+    """
     rot(direction)
     poly(makeTurn(R, line, mesh, angle), shift)
     rotback()
     return direction
 
 def turnup(direction, R, line, mesh, shift = (0,0)):
+    """
+    Draw 90deg curved line going right->up.
+    """
     rot(direction)
     poly(makeTurn(R, line, mesh, np.pi/2.), shift)
     rotback()
     return direction
 
 def turndown(direction, R, line, mesh, shift = (0,0)):
+    """
+    Draw 90deg curved line going right->down
+    """
     rot(direction)
     poly(makeTurn(R, line, mesh, -np.pi/2.), shift)
     rotback()
     return direction
 
 def turn180(direction, R, line, mesh, shift = (0,0)):
+    """
+    Draw 180deg curved line going right->up->left
+    """
     rot(direction)
     poly(makeTurn(R, line, mesh, np.pi), shift)
     rotback()
     return direction
 
 def turnupgo(direction, R, line, mesh, shift = (0,0)):
+    """
+    Draw 90deg curved line going right->up and move UCS to end of line.
+    """
     turnup(direction, R, line, mesh, shift)
     rot(direction)
     go(R,R)
@@ -106,6 +161,9 @@ def turnupgo(direction, R, line, mesh, shift = (0,0)):
     return direction_out
 
 def turndowngo(direction, R, line, mesh, shift = (0,0)):
+    """
+    Draw 90deg curved line going right->down and move UCS to end of line.
+    """
     turndown(direction, R, line, mesh, shift)
     rot(direction)
     go(R,-R)
@@ -114,6 +172,9 @@ def turndowngo(direction, R, line, mesh, shift = (0,0)):
     return direction_out
 
 def turn180go(direction, R, line, mesh, shift = (0,0)):
+    """
+    Draw 90deg curved line going right->up->left and move UCS to end of line.
+    """
     turn180(direction, R, line, mesh, shift)
     rot(direction)
     go(0, 2*R)
@@ -152,6 +213,9 @@ def turn45downgo(direction, R, line, mesh, shift = (0,0)):
 #    return direction
 
 def broaden(direction, L, W_narrow, W_broad, shift = (0,0)):
+    """
+    Draw tapering line, going from W_narrow to W_broad
+    """
     rot(direction)
     xy = [[0, L, L, 0], [-W_narrow/2., -W_broad/2., W_broad/2., W_narrow/2.]]
     poly(np.array(xy), shift)
@@ -159,6 +223,9 @@ def broaden(direction, L, W_narrow, W_broad, shift = (0,0)):
     return direction
 
 def broadengo(direction, L, W_narrow, W_broad, shift = (0,0)):
+    """
+    Draw tapering line, going from W_narrow to W_broad. Moves UCS to end of line
+    """
     broaden(direction, L, W_narrow, W_broad, shift)
     rot(direction)
     go(L, 0)
@@ -170,11 +237,17 @@ def broadengo(direction, L, W_narrow, W_broad, shift = (0,0)):
 #==============================================================================
 
 def cpw(direction, L, line, gap, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     wire(direction, L, gap, (0+shift[0],(line+gap)/2.+shift[1]))
     wire(direction, L, gap, (0+shift[0],-(line+gap)/2.+shift[1]))
     return direction
 
 def cpwgo(direction, L, line, gap, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     wire(direction, float(L), gap, (0+shift[0],(line+gap)/2.+shift[1]))
     wire(direction, float(L), gap, (0+shift[0],-(line+gap)/2.+shift[1]))
     rot(direction)
@@ -183,6 +256,9 @@ def cpwgo(direction, L, line, gap, shift = (0,0)):
     return direction
 
 def cpwbroaden(direction, L, line_narrow, gap_narrow, line_wide, gap_wide, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     xy1 = np.array([[0, 0, L, L], [line_narrow/2, gap_narrow + line_narrow/2., gap_wide + line_wide/2., line_wide/2.]])
     rot(direction)
     poly(xy1, shift)
@@ -192,6 +268,9 @@ def cpwbroaden(direction, L, line_narrow, gap_narrow, line_wide, gap_wide, shift
     return direction
 
 def cpwbroadengo(direction, L, line_narrow, gap_narrow, line_wide, gap_wide, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     cpwbroaden(direction, L, line_narrow, gap_narrow, line_wide, gap_wide, shift)
     rot(direction)
     go(L, 0)
@@ -199,6 +278,9 @@ def cpwbroadengo(direction, L, line_narrow, gap_narrow, line_wide, gap_wide, shi
     return direction
 
 def cpwup(direction, R, line, gap, mesh, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     rot(direction)
 #    inner gap
     go(0, +(gap+line)/2.)
@@ -211,6 +293,9 @@ def cpwup(direction, R, line, gap, mesh, shift = (0,0)):
     return direction
 
 def cpwdown(direction, R, line, gap, mesh, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     rot(direction)
 #    inner gap
     go(0, -(gap+line)/2.)
@@ -223,6 +308,9 @@ def cpwdown(direction, R, line, gap, mesh, shift = (0,0)):
     return direction
 
 def cpw180(direction, R, line, gap, mesh, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     rot(direction)
 #    inner gap
     go(0, +(gap+line)/2.)
@@ -235,6 +323,9 @@ def cpw180(direction, R, line, gap, mesh, shift = (0,0)):
     return direction
 
 def cpwupgo(direction, R, line, gap, mesh, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     cpwup(direction, R, line, gap, mesh, shift)
     rot(direction)
     go(R,R)
@@ -242,6 +333,9 @@ def cpwupgo(direction, R, line, gap, mesh, shift = (0,0)):
     return direction
 
 def cpwdowngo(direction, R, line, gap, mesh, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     cpwdown(direction, R, line, gap, mesh, shift)
     rot(direction)
     go(R,-R)
@@ -249,6 +343,9 @@ def cpwdowngo(direction, R, line, gap, mesh, shift = (0,0)):
     return direction
 
 def cpw180go(direction, R, line, gap, mesh, shift = (0,0)):
+    """
+    Deprecated, use parts.CPWs.CPW() class instead
+    """
     cpw180(direction, R, line, gap, mesh, shift)
     rot(direction)
     go(0, 2*R)
@@ -260,6 +357,9 @@ def cpw180go(direction, R, line, gap, mesh, shift = (0,0)):
 #==============================================================================
 
 def ms(direction, L, W, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel', layer3 = 'SiNwafer', shift = (0,0)):
+    """
+    Deprecated, use parts.Microstrips.Microstrip() class instead
+    """
     layername(layer3)
     wire(direction, L, 2*Wsin)
     layername(layer2)
@@ -269,6 +369,9 @@ def ms(direction, L, W, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel', layer3 = 'S
     return direction
 
 def msgo(direction, L, W, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel',  layer3 = 'SiNwafer', shift = (0,0)):
+    """
+    Deprecated, use parts.Microstrips.Microstrip() class instead
+    """
     layername(layer3)
     wire(direction, L, 2*Wsin)
     layername(layer2)
@@ -278,6 +381,9 @@ def msgo(direction, L, W, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel',  layer3 =
     return direction
 
 def msupgo(direction, R, line, mesh, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel', layer3 = 'SiNwafer', shift = (0,0)):
+    """
+    Deprecated, use parts.Microstrips.Microstrip() class instead
+    """
     layername(layer3)
     turnup(direction, R, 2*Wsin, mesh)
     layername(layer2)
@@ -288,6 +394,9 @@ def msupgo(direction, R, line, mesh, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel'
 
 
 def msdowngo(direction, R, line, mesh, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel', layer3 = 'SiNwafer', shift = (0,0)):
+    """
+    Deprecated, use parts.Microstrips.Microstrip() class instead
+    """
     layername(layer3)
     turndown(direction, R, 2*Wsin, mesh)
     layername(layer2)
@@ -296,6 +405,9 @@ def msdowngo(direction, R, line, mesh, Wsin, layer1 = 'MSline', layer2 = 'SiNdie
     turndowngo(direction, R, line, mesh)
 
 def ms45upgo(direction, R, line, mesh, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel', layer3 = 'SiNwafer', shift = (0,0)):
+    """
+    Deprecated, use parts.Microstrips.Microstrip() class instead
+    """
     layername(layer3)
     turn45up(direction, R, 2*Wsin, mesh)
     layername(layer2)
@@ -305,6 +417,9 @@ def ms45upgo(direction, R, line, mesh, Wsin, layer1 = 'MSline', layer2 = 'SiNdie
     return direction
 
 def ms45downgo(direction, R, line, mesh, Wsin, layer1 = 'MSline', layer2 = 'SiNdiel', layer3 = 'SiNwafer', shift = (0,0)):
+    """
+    Deprecated, use parts.Microstrips.Microstrip() class instead
+    """
     layername(layer3)
     turn45down(direction, R, 2*Wsin, mesh)
     layername(layer2)

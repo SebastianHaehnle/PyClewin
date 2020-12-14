@@ -62,7 +62,10 @@ def alignmentCircles(layer):
             smallcross()
     gomark('tempcenter')
 
-def alignmentSquares(layer, name = None):
+def alignmentBottom(layer):
+    pass
+
+def alignmentSquares_crap(layer, name = None):
     dS = 5
     dM = 10
     dL = 40

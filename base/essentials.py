@@ -48,7 +48,7 @@ def writeTotalString(filename):
     gg.doSymbolWriting = False
     
     # Script Intro
-    gg.w('(CIF written by CleWin 3.1);\n')
+    gg.w('(CIF written by CleWin 5.4);\n')
     gg.w('(1 unit = 0.001 micron);\n')
     gg.w('(SRON);\n')
     gg.w('(Sorbonnelaan 2);\n')
